@@ -20,6 +20,11 @@ class DatabaseSeeder extends Seeder
         LocationSeeder::class,
         ProductLineSeeder::class,
         BranchAllowedProductLineSeeder::class,
+        RoleSeeder::class,
+        BusinessUnitSeeder::class,
+        LocationSeeder::class,
+        ProductLineSeeder::class,
+        BranchAllowedProductLineSeeder::class,
     ]);
 }
 }

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container mx-auto py-6 px-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-semibold text-gray-800">Business Unit Details</h1>

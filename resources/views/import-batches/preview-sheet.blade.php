@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container-fluid py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="h4 mb-1">Sheet Preview</h2>

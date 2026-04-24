@@ -15,30 +15,55 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')">
-                        {{ __('Branches') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('business-units.index')" :active="request()->routeIs('business-units.*')">
-                        {{ __('Business Units') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('locations.index')" :active="request()->routeIs('locations.*')">
-                        {{ __('Locations') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('product-lines.index')" :active="request()->routeIs('product-lines.*')">
-                        {{ __('Product Lines') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
-                        {{ __('Categories') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('brands.index')" :active="request()->routeIs('brands.*')">
-                        {{ __('Brands') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('import-batches.index')" :active="request()->routeIs('import-batches.*')">
-                        {{ __('Imports') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('sales-transactions.index')" :active="request()->routeIs('sales-transactions.*')">
-                        {{ __('Sales Transactions') }}
-                    </x-nav-link>
+
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <x-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')">
+                            {{ __('Branches') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('business-units.index')" :active="request()->routeIs('business-units.*')">
+                            {{ __('Business Units') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('locations.index')" :active="request()->routeIs('locations.*')">
+                            {{ __('Locations') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('product-lines.index')" :active="request()->routeIs('product-lines.*')">
+                            {{ __('Product Lines') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                            {{ __('Categories') }}
+                        </x-nav-link>
+
+                        <x-nav-link :href="route('brands.index')" :active="request()->routeIs('brands.*')">
+                            {{ __('Brands') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer']))
+                        <x-nav-link :href="route('import-batches.index')" :active="request()->routeIs('import-batches.*')">
+                            {{ __('Imports') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']))
+                        <x-nav-link :href="route('sales-transactions.index')" :active="request()->routeIs('sales-transactions.*')">
+                            {{ __('Sales Transactions') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasRole('super_admin'))
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                            {{ __('Users') }}
+                        </x-nav-link>
+                    @endif
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer']))
+                        <x-nav-link :href="route('import-conflicts.index')" :active="request()->routeIs('import-conflicts.*')">
+                            {{ __('Import Conflicts') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -47,7 +72,15 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div class="flex flex-col items-start leading-tight">
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ Auth::user()->name }}
+                                </span>
+
+                                <span class="text-xs text-gray-500">
+                                    {{ Auth::user()->role->name ?? 'No Role' }}
+                                </span>
+                            </div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -94,13 +127,73 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                <x-responsive-nav-link :href="route('branches.index')" :active="request()->routeIs('branches.*')">
+                    {{ __('Branches') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('business-units.index')" :active="request()->routeIs('business-units.*')">
+                    {{ __('Business Units') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('locations.index')" :active="request()->routeIs('locations.*')">
+                    {{ __('Locations') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('product-lines.index')" :active="request()->routeIs('product-lines.*')">
+                    {{ __('Product Lines') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                    {{ __('Categories') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('brands.index')" :active="request()->routeIs('brands.*')">
+                    {{ __('Brands') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer']))
+                <x-responsive-nav-link :href="route('import-batches.index')" :active="request()->routeIs('import-batches.*')">
+                    {{ __('Imports') }}
+                </x-responsive-nav-link>
+                
+            @endif
+
+            @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']))
+                <x-responsive-nav-link :href="route('sales-transactions.index')" :active="request()->routeIs('sales-transactions.*')">
+                    {{ __('Sales Transactions') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->hasRole('super_admin'))
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    {{ __('Users') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'importer']))
+                <x-responsive-nav-link :href="route('import-conflicts.index')" :active="request()->routeIs('import-conflicts.*')">
+                    {{ __('Import Conflicts') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800">
+                    {{ Auth::user()->name }}
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    {{ Auth::user()->role->name ?? 'No Role Assigned' }}
+                </div>
+
+                <div class="text-sm text-gray-400">
+                    {{ Auth::user()->email }}
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">

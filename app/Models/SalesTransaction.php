@@ -54,6 +54,8 @@ class SalesTransaction extends Model
         'monthly_amortization',
         'street_address',
         'city_municipality',
+        'row_hash',
+        'match_key',
     ];
 
     protected $casts = [

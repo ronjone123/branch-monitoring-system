@@ -1,8 +1,15 @@
 <x-app-layout>
-    <div class="container-fluid py-4">
-        <div class="mb-4">
-            <h2 class="h4 mb-1">Sales Transactions</h2>
-            <p class="text-muted mb-0">Browse imported sales transaction records.</p>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h4 mb-1">Sales Transactions</h2>
+                <p class="text-muted mb-0">Browse imported sales transaction records.</p>
+            </div>
+
+            <a href="{{ route('sales-transactions.export', request()->query()) }}"
+            class="btn btn-success">
+                Export CSV
+            </a>
         </div>
 
         <div class="card shadow-sm border-0 mb-4">
@@ -104,7 +111,9 @@
                                 <th>Account Number</th>
                                 <th>Customer Name</th>
                                 <th>Product</th>
-                                <th>Amount</th>
+                                <th class="text-end">SRP / COD</th>
+                                <th class="text-end">Cash</th>
+                                <th class="text-end">Promissory Note</th>
                                 <th>Terms</th>
                                 <th>Branch</th>
                                 <th>Import Batch</th>
@@ -119,8 +128,14 @@
                                     <td>{{ $transaction->account_number ?? '-' }}</td>
                                     <td>{{ $transaction->customer_name ?? '-' }}</td>
                                     <td>{{ $transaction->product ?? '-' }}</td>
-                                    <td>
-                                        {{ $transaction->amount !== null ? number_format((float) $transaction->amount, 2) : '-' }}
+                                    <td class="text-end">
+                                        {{ $transaction->srp_cod_amount !== null ? number_format((float) $transaction->srp_cod_amount, 2) : '-' }}
+                                    </td>
+                                    <td class="text-end">
+                                        {{ $transaction->cash_amount !== null ? number_format((float) $transaction->cash_amount, 2) : '-' }}
+                                    </td>
+                                    <td class="text-end">
+                                        {{ $transaction->promissory_note_amount !== null ? number_format((float) $transaction->promissory_note_amount, 2) : '-' }}
                                     </td>
                                     <td>{{ $transaction->terms ?? '-' }}</td>
                                     <td>{{ $transaction->branch->display_name ?? '-' }}</td>
@@ -135,7 +150,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-4 text-muted">
+                                    <td colspan="12" class="text-center py-4 text-muted">
                                         No sales transactions found.
                                     </td>
                                 </tr>
@@ -152,4 +167,5 @@
             @endif
         </div>
     </div>
+</div>
 </x-app-layout>

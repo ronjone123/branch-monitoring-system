@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container mx-auto py-6 px-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if(session('success'))
             <div class="mb-4 rounded bg-green-100 border border-green-300 text-green-800 px-4 py-3">
                 {{ session('success') }}
@@ -12,7 +12,7 @@
                 <p class="text-sm text-gray-500">Manage business unit records.</p>
             </div>
             <a href="{{ route('business-units.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-dark rounded hover:bg-blue-700">
                 Add Business Unit
             </a>
         </div>

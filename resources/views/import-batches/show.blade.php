@@ -1,16 +1,16 @@
 <x-app-layout>
-    <div class="container-fluid py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <div>
                 <h2 class="h4 mb-1">Import Batch Details</h2>
                 <p class="text-muted mb-0">Review import metadata, sheets, and errors.</p>
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <form action="{{ route('import-batches.parse-all', $importBatch) }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-success">
@@ -44,6 +44,8 @@
                         <p><strong>Invalid Rows:</strong> {{ $importBatch->invalid_rows }}</p>
                         <p><strong>Imported Rows:</strong> {{ $importBatch->imported_rows }}</p>
                         <p><strong>Skipped Rows:</strong> {{ $importBatch->skipped_rows }}</p>
+                        <p><strong>Duplicate Rows:</strong> {{ $importBatch->duplicate_rows }}</p>
+                        <p><strong>Conflict Rows:</strong> {{ $importBatch->conflict_rows }}</p>
                         <p><strong>Imported At:</strong> {{ optional($importBatch->imported_at)->format('Y-m-d H:i:s') ?? '-' }}</p>
                         <p class="mb-0"><strong>Notes:</strong> {{ $importBatch->notes ?? '-' }}</p>
                     </div>
@@ -57,7 +59,7 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Sheet Name</th>
@@ -65,10 +67,12 @@
                                         <th>Branch</th>
                                         <th>Status</th>
                                         <th>Total Rows</th>
-                                        <th>Imported Rows</th>
-                                        <th>Valid Rows</th>
+                                        <th>Imported</th>
+                                        <th>Valid</th>
+                                        <th>Duplicate</th>
+                                        <th>Conflict</th>
                                         <th>Notes</th>
-                                        <th class="text-end">Action</th>
+                                        <th style="min-width: 150px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -81,40 +85,42 @@
                                             <td>{{ $sheet->total_rows }}</td>
                                             <td>{{ $sheet->imported_rows }}</td>
                                             <td>{{ $sheet->valid_rows }}</td>
+                                            <td>{{ $sheet->duplicate_rows }}</td>
+                                            <td>{{ $sheet->conflict_rows }}</td>
                                             <td>{{ $sheet->notes ?? '-' }}</td>
-                                            <td class="text-end">
+                                            <td>
                                                 @if($sheet->sheet_type === 'transaction')
-                                                    <a href="{{ route('import-batches.sheets.preview', [$importBatch, $sheet]) }}"
-                                                    class="btn btn-sm btn-outline-primary">
-                                                        Preview
-                                                    </a>
+                                                    <div class="d-flex flex-column gap-2">
+                                                        <a href="{{ route('import-batches.sheets.preview', [$importBatch, $sheet]) }}"
+                                                           class="btn btn-sm btn-outline-primary">
+                                                            Preview
+                                                        </a>
 
-                                                    <form action="{{ route('import-batches.sheets.parse', [$importBatch, $sheet]) }}"
-                                                        method="POST"
-                                                        class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-sm btn-success">
-                                                            Parse
-                                                        </button>
-                                                    </form>
+                                                        <form action="{{ route('import-batches.sheets.parse', [$importBatch, $sheet]) }}"
+                                                              method="POST">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                                Parse
+                                                            </button>
+                                                        </form>
 
-                                                    <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
-                                                        method="POST"
-                                                        class="d-inline"
-                                                        onsubmit="return confirm('Reset parsed data for this sheet?')">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                            Reset
-                                                        </button>
-                                                    </form>
+                                                        <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
+                                                              method="POST"
+                                                              onsubmit="return confirm('Reset parsed data for this sheet?')">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                                Reset
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 @else
-                                                    -
+                                                    <span class="text-muted">-</span>
                                                 @endif
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-center py-4 text-muted">
+                                            <td colspan="11" class="text-center py-4 text-muted">
                                                 No sheet records yet.
                                             </td>
                                         </tr>

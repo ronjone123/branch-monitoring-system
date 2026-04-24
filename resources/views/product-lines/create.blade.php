@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container-fluid py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="mb-4">
             <h2 class="h4 mb-1">Add Product Line</h2>
             <p class="text-muted mb-0">Create a new product line record.</p>

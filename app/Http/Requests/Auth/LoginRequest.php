@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+
 
 class LoginRequest extends FormRequest
 {
@@ -42,7 +44,17 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->only('email', 'password');
+
+        $user = User::where('email', $this->string('email'))->first();
+
+        if (! $user || $user->status !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => 'Your account is inactive. Please contact the system administrator.',
+            ]);
+        }
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="container-fluid py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
