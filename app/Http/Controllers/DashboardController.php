@@ -207,9 +207,9 @@ class DashboardController extends Controller
                     'branch_name' => $branch->display_name,
                     'business_unit_name' => $branch->businessUnit->name ?? '-',
                     'today_transaction_count' => (clone $todayQuery)->count(),
-                    'today_amount' => (clone $todayQuery)->sum('amount'),
+                    'today_amount' => (clone $todayQuery)->sum('promissory_note_amount'),
                     'month_to_date_transaction_count' => (clone $monthToDateQuery)->count(),
-                    'month_to_date_amount' => (clone $monthToDateQuery)->sum('amount'),
+                    'month_to_date_amount' => (clone $monthToDateQuery)->sum('promissory_note_amount'),
                 ];
             })
             ->sortByDesc('month_to_date_amount')
@@ -587,13 +587,13 @@ class DashboardController extends Controller
         ];
 
         $todayTransactionCount = (clone $todayTransactionsQuery)->count();
-        $todayAmount = (clone $todayTransactionsQuery)->sum('amount');
+        $todayAmount = (clone $todayTransactionsQuery)->sum('promissory_note_amount');
 
         $monthToDateTransactionCount = (clone $monthToDateTransactionsQuery)->count();
-        $monthToDateAmount = (clone $monthToDateTransactionsQuery)->sum('amount');
+        $monthToDateAmount = (clone $monthToDateTransactionsQuery)->sum('promissory_note_amount');
 
         $totalSalesTransactions = (clone $transactionsBaseQuery)->count();
-        $totalImportedAmount = (clone $transactionsBaseQuery)->sum('amount');
+        $totalImportedAmount = (clone $transactionsBaseQuery)->sum('promissory_note_amount');
 
         $latestImportBatches = ImportBatch::with('user')
             ->latest()
@@ -613,7 +613,7 @@ class DashboardController extends Controller
             SalesTransaction::select(
                 'branch_id',
                 DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('COALESCE(SUM(amount), 0) as total_amount')
+                DB::raw('COALESCE(SUM(promissory_note_amount), 0) as total_amount')
             )->with('branch')
         )
             ->groupBy('branch_id')
@@ -646,7 +646,7 @@ class DashboardController extends Controller
                     ? SalesTransaction::when($dateFrom, fn ($query) => $query->whereDate('invoice_date', '>=', $dateFrom))
                         ->when($dateTo, fn ($query) => $query->whereDate('invoice_date', '<=', $dateTo))
                         ->whereIn('branch_id', $branchIds)
-                        ->sum('amount')
+                        ->sum('promissory_note_amount')
                     : 0;
 
                 return (object) [
@@ -678,7 +678,7 @@ class DashboardController extends Controller
             SalesTransaction::select(
                 DB::raw("DATE_FORMAT(invoice_date, '%Y-%m') as month"),
                 DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('COALESCE(SUM(amount), 0) as total_amount')
+                DB::raw('COALESCE(SUM(promissory_note_amount), 0) as total_amount')
             )
         )
             ->whereNotNull('invoice_date')
