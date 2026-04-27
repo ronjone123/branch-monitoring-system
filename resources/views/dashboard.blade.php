@@ -155,10 +155,6 @@
             font-weight: 700;
         }
 
-        .report-table {
-            margin-bottom: 0;
-        }
-
         .report-table thead tr:first-child th {
             background: var(--summary-blue);
             color: #fff;
@@ -186,6 +182,7 @@
         .report-table th {
             padding: 0.8rem 0.9rem;
             vertical-align: middle;
+            overflow-wrap: anywhere;
         }
 
         .report-table tbody tr:nth-child(even) {
@@ -201,10 +198,6 @@
             background: #eef4ff;
             font-weight: 800;
             border-color: #c7d6ee;
-        }
-
-        .branch-cell {
-            min-width: 190px;
         }
 
         .branch-name {
@@ -370,6 +363,187 @@
             color: var(--summary-blue);
         }
 
+        .summary-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    }
+
+    .summary-highlight-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .executive-card {
+        background: #fff;
+        border-radius: 1rem;
+        border: 2px solid #d9e4f4;
+        box-shadow: 0 8px 24px rgba(15, 59, 120, 0.06);
+        min-height: 170px;
+        overflow: hidden;
+    }
+
+    .executive-card-body {
+        padding: 1.25rem 1.25rem 1.1rem;
+    }
+
+    .executive-card-top {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .executive-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.45rem;
+        color: #fff;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .executive-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        line-height: 1.25;
+        margin-bottom: 0;
+    }
+
+    .executive-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: #111827;
+        margin-bottom: 0.35rem;
+    }
+
+    .executive-subtext {
+        color: #6b7280;
+        font-size: 0.92rem;
+        font-weight: 500;
+    }
+
+    .executive-code {
+        color: #6b7280;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0.35rem;
+    }
+
+    .executive-small-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: #111827;
+    }
+
+    .card-blue {
+        background: #eef5ff;
+        border-color: #9ec5ff;
+    }
+    .card-blue .executive-title {
+        color: #114187;
+    }
+    .card-blue .executive-icon {
+        background: #114187;
+    }
+
+    .card-green {
+        background: #eefaf1;
+        border-color: #9fd6ad;
+    }
+    .card-green .executive-title {
+        color: #1d7c39;
+    }
+    .card-green .executive-icon {
+        background: #1d7c39;
+    }
+
+    .card-yellow {
+        background: #fff8e8;
+        border-color: #f0d07f;
+    }
+    .card-yellow .executive-title {
+        color: #b7791f;
+    }
+    .card-yellow .executive-icon {
+        background: #d69e2e;
+    }
+
+    .card-purple {
+        background: #f5f0ff;
+        border-color: #c4b5fd;
+    }
+    .card-purple .executive-title {
+        color: #6d28d9;
+    }
+    .card-purple .executive-icon {
+        background: #6d28d9;
+    }
+
+    .card-teal {
+        background: #edf9fb;
+        border-color: #9bd8e3;
+    }
+    .card-teal .executive-title {
+        color: #0f7890;
+    }
+    .card-teal .executive-icon {
+        background: #0f7890;
+    }
+
+    .card-navy {
+        background: #eef4ff;
+        border-color: #9fb9e9;
+    }
+    .card-navy .executive-title {
+        color: #103f86;
+    }
+    .card-navy .executive-icon {
+        background: #103f86;
+    }
+
+    .card-cyan {
+        background: #eefbfd;
+        border-color: #9edcea;
+    }
+    .card-cyan .executive-title {
+        color: #0b7285;
+    }
+    .card-cyan .executive-icon {
+        background: #0b7285;
+    }
+
+    @media (max-width: 1400px) {
+        .summary-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-highlight-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 992px) {
+        .summary-highlight-grid {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .summary-kpi-grid {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+    }
+
         @media (max-width: 768px) {
             .summary-hero-title {
                 font-size: 1.7rem;
@@ -387,7 +561,9 @@
         }
     </style>
 
-    <div class="summary-shell px-3 px-md-4 py-4">
+    <div class="summary-shell px-3 px-md-4 py-4" style="padding-top: 5.5rem;">
+
+        {{-- Hero --}}
         <div class="mb-4">
             <div class="summary-hero d-flex flex-column flex-lg-row justify-content-between align-items-stretch">
                 <div class="flex-grow-1 p-4 p-lg-5 d-flex align-items-center justify-content-center">
@@ -408,6 +584,7 @@
             </div>
         </div>
 
+        {{-- Dashboard Filters --}}
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-header bg-white border-0 pt-4 px-4">
                 <h5 class="mb-0 dashboard-card-title">Dashboard Filters</h5>
@@ -443,24 +620,12 @@
 
                         <div class="col-md-2">
                             <label for="date_from" class="form-label fw-semibold">Date From</label>
-                            <input
-                                type="date"
-                                name="date_from"
-                                id="date_from"
-                                class="form-control rounded-3"
-                                value="{{ $dateFrom }}"
-                            >
+                            <input type="date" name="date_from" id="date_from" class="form-control rounded-3" value="{{ $dateFrom }}">
                         </div>
 
                         <div class="col-md-2">
                             <label for="date_to" class="form-label fw-semibold">Date To</label>
-                            <input
-                                type="date"
-                                name="date_to"
-                                id="date_to"
-                                class="form-control rounded-3"
-                                value="{{ $dateTo }}"
-                            >
+                            <input type="date" name="date_to" id="date_to" class="form-control rounded-3" value="{{ $dateTo }}">
                         </div>
 
                         <div class="col-md-2 d-flex align-items-end gap-2">
@@ -472,6 +637,122 @@
             </div>
         </div>
 
+        {{-- TOP SUMMARY CARDS --}}
+    <div id="sales-overview" class="summary-kpi-grid mb-4">
+        <div class="executive-card card-blue">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">₱</div>
+                    <div>
+                        <div class="executive-title">Sales Today</div>
+                    </div>
+                </div>
+                <div class="executive-value">{{ number_format((float) $todayAmount, 2) }}</div>
+                <div class="executive-subtext">Validated from current dashboard totals</div>
+            </div>
+        </div>
+
+        <div class="executive-card card-green">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">#</div>
+                    <div>
+                        <div class="executive-title">Transactions Today</div>
+                    </div>
+                </div>
+                <div class="executive-value">{{ $todayTransactionCount }}</div>
+                <div class="executive-subtext">Count of all matching records</div>
+            </div>
+        </div>
+
+        <div class="executive-card card-yellow">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">₱</div>
+                    <div>
+                        <div class="executive-title">Month-to-Date Sales</div>
+                    </div>
+                </div>
+                <div class="executive-value">{{ number_format((float) $monthToDateAmount, 2) }}</div>
+                <div class="executive-subtext">Month-to-date summary amount</div>
+            </div>
+        </div>
+
+        <div class="executive-card card-purple">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">#</div>
+                    <div>
+                        <div class="executive-title">Month-to-Date Transactions</div>
+                    </div>
+                </div>
+                <div class="executive-value">{{ $monthToDateTransactionCount }}</div>
+                <div class="executive-subtext">Month-to-date transaction volume</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="top-summary" class="summary-highlight-grid mb-4">
+        <div class="executive-card card-navy">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">🏆</div>
+                    <div>
+                        <div class="executive-title">Top Branch This Month</div>
+                    </div>
+                </div>
+
+                @if($topBranchThisMonth)
+                    <div class="executive-value" style="font-size: 1.45rem;">
+                        {{ $topBranchThisMonth->branch_name }}
+                    </div>
+                    <div class="executive-code">{{ $topBranchThisMonth->branch_code }}</div>
+                    <div class="executive-small-value">
+                        {{ number_format((float) $topBranchThisMonth->month_to_date_amount, 2) }}
+                    </div>
+                @else
+                    <div class="executive-subtext">No branch data found.</div>
+                @endif
+            </div>
+        </div>
+
+        <div class="executive-card card-teal">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">🏢</div>
+                    <div>
+                        <div class="executive-title">Top Business Unit This Month</div>
+                    </div>
+                </div>
+
+                @if($topBusinessUnitThisMonth)
+                    <div class="executive-value" style="font-size: 1.45rem;">
+                        {{ $topBusinessUnitThisMonth->name }}
+                    </div>
+                    <div class="executive-code">{{ $topBusinessUnitThisMonth->code }}</div>
+                    <div class="executive-small-value">
+                        {{ number_format((float) $topBusinessUnitThisMonth->total_amount, 2) }}
+                    </div>
+                @else
+                    <div class="executive-subtext">No business unit data found.</div>
+                @endif
+            </div>
+        </div>
+
+        <div class="executive-card card-cyan">
+            <div class="executive-card-body">
+                <div class="executive-card-top">
+                    <div class="executive-icon">🏬</div>
+                    <div>
+                        <div class="executive-title">Active Branches</div>
+                    </div>
+                </div>
+
+                <div class="executive-value">{{ $activeBranches }}</div>
+                <div class="executive-subtext">Currently active branches</div>
+            </div>
+        </div>
+    </div>
             <div id="appliance-cash" class="summary-card mb-4">
                 <div class="summary-section-header">
                     <div>
@@ -983,121 +1264,6 @@
             </div>
         </div>
 
-        <div id="sales-overview" class="row g-4 mb-4">
-            <div class="col-md-6 col-xl-3">
-                <div class="kpi-card blue p-4">
-                    <div class="kpi-label">Sales Today</div>
-                    <div class="kpi-value mt-3">{{ number_format((float) $todayAmount, 2) }}</div>
-                    <div class="kpi-sub mt-3">Validated from current dashboard totals</div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-3">
-                <div class="kpi-card green p-4">
-                    <div class="kpi-label">Transactions Today</div>
-                    <div class="kpi-value mt-3">{{ $todayTransactionCount }}</div>
-                    <div class="kpi-sub mt-3">Count of all matching records</div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-3">
-                <div class="kpi-card yellow p-4">
-                    <div class="kpi-label">Month-to-Date Sales</div>
-                    <div class="kpi-value mt-3">{{ number_format((float) $monthToDateAmount, 2) }}</div>
-                    <div class="kpi-sub mt-3">Month-to-date summary amount</div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-3">
-                <div class="kpi-card purple p-4">
-                    <div class="kpi-label">Month-to-Date Transactions</div>
-                    <div class="kpi-value mt-3">{{ $monthToDateTransactionCount }}</div>
-                    <div class="kpi-sub mt-3">Month-to-date transaction volume</div>
-                </div>
-            </div>
-        </div>
-                <div id="top-summary" class="row g-4 mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <div class="text-muted small mb-2">Top Branch This Month</div>
-
-                        @if($topBranchThisMonth)
-                            <div class="fw-semibold fs-5">{{ $topBranchThisMonth->branch_name }}</div>
-                            <div class="text-muted small mb-2">{{ $topBranchThisMonth->branch_code }}</div>
-                            <div class="fs-3 fw-bold">
-                                {{ number_format((float) $topBranchThisMonth->month_to_date_amount, 2) }}
-                            </div>
-                        @else
-                            <div class="text-muted">No branch data found.</div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <div class="text-muted small mb-2">Top Business Unit This Month</div>
-
-                        @if($topBusinessUnitThisMonth)
-                            <div class="fw-semibold fs-5">{{ $topBusinessUnitThisMonth->name }}</div>
-                            <div class="text-muted small mb-2">{{ $topBusinessUnitThisMonth->code }}</div>
-                            <div class="fs-3 fw-bold">
-                                {{ number_format((float) $topBusinessUnitThisMonth->total_amount, 2) }}
-                            </div>
-                        @else
-                            <div class="text-muted">No business unit data found.</div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-                    <div id="top-branches" class="card shadow-sm border-0 rounded-4 mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4">
-                <div>
-                    <h5 class="mb-1 dashboard-card-title">Top 5 Branches This Month</h5>
-                    <p class="text-muted small mb-0">Highest-performing branches based on month-to-date sales.</p>
-                </div>
-            </div>
-
-            <div class="card-body pt-0 px-4 pb-4">
-                <div class="table-responsive">
-                    <table class="table report-table align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Rank</th>
-                                <th>Branch</th>
-                                <th>Business Unit</th>
-                                <th class="count-col">Month-to-Date Transactions</th>
-                                <th class="amount-col">Month-to-Date Sales</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($topFiveBranchesThisMonth as $index => $branch)
-                                <tr>
-                                    <td class="fw-semibold">{{ $index + 1 }}</td>
-                                    <td>
-                                        <div class="fw-semibold">{{ $branch->branch_name }}</div>
-                                        <div class="small text-muted">{{ $branch->branch_code }}</div>
-                                    </td>
-                                    <td>{{ $branch->business_unit_name }}</td>
-                                    <td class="count-col">{{ $branch->month_to_date_transaction_count }}</td>
-                                    <td class="amount-col fw-semibold">{{ number_format((float) $branch->month_to_date_amount, 2) }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        No branch ranking data found.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
         <div id="branch-performance" class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-header bg-white border-0 pt-4 px-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
@@ -1370,8 +1536,8 @@
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 h-100">
                         <div class="card-body p-4">
-                            <div class="text-muted small mb-2">Active Branches</div>
-                            <div class="fs-2 fw-bold">{{ $activeBranches }}</div>
+                            <div class="text-muted small mb-2">Filtered Business Units</div>
+                            <div class="fs-2 fw-bold">{{ $businessUnits->count() }}</div>
                         </div>
                     </div>
                 </div>
@@ -1435,7 +1601,6 @@
                 <div class="report-menu-group">Summary Sections</div>
                 <a href="#sales-overview">Sales Overview</a>
                 <a href="#top-summary">Top Summary</a>
-                <a href="#top-branches">Top 5 Branches</a>
                 <a href="#branch-performance">Branch Performance</a>
                 <a href="#business-unit-totals">Business Unit Totals</a>
                 <a href="#latest-sales-transactions">Latest Sales Transactions</a>
