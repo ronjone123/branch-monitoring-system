@@ -1,42 +1,383 @@
 <x-app-layout>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="mb-6 flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-gray-800">Business Unit Details</h1>
-                <p class="text-sm text-gray-500">View business unit information.</p>
+    <style>
+        :root {
+            --summary-blue: #0f3b78;
+            --summary-blue-dark: #0b2f60;
+            --summary-border: #cfd9ea;
+            --summary-bg: #f4f7fb;
+            --summary-card-bg: #ffffff;
+            --summary-text: #162033;
+            --summary-muted: #6b7280;
+
+            --summary-success-bg: #eaf7ee;
+            --summary-success-text: #1f7a3d;
+
+            --summary-warning-bg: #fff8e6;
+            --summary-warning-text: #b7791f;
+
+            --summary-secondary-bg: #eef2f7;
+            --summary-secondary-text: #475467;
+
+            --summary-info-bg: #eaf4ff;
+            --summary-info-text: #175cd3;
+        }
+
+        body {
+            background: var(--summary-bg);
+        }
+
+        .summary-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-with-fixed-nav {
+            padding-top: 6.5rem;
+        }
+
+        .summary-hero {
+            background: linear-gradient(135deg, var(--summary-blue-dark), var(--summary-blue));
+            border-radius: 1.25rem;
+            overflow: hidden;
+            color: #fff;
+            box-shadow: 0 18px 40px rgba(15, 59, 120, 0.12);
+        }
+
+        .summary-hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .summary-date-box {
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.10);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .summary-date-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            opacity: 0.85;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-date-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-top: 0.35rem;
+            text-align: center;
+        }
+
+        .summary-card {
+            background: var(--summary-card-bg);
+            border: 1px solid var(--summary-border);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(15, 59, 120, 0.06);
+            overflow: hidden;
+        }
+
+        .summary-section-header {
+            background: var(--summary-blue);
+            color: #fff;
+            padding: 1rem 1.25rem;
+        }
+
+        .summary-section-header h5 {
+            margin: 0;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+        }
+
+        .summary-section-subtitle {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.88rem;
+            margin-top: 0.25rem;
+        }
+
+        .summary-stat {
+            background: #fff;
+            border: 1px solid var(--summary-border);
+            border-radius: 0.9rem;
+            padding: 1rem 1.1rem;
+            height: 100%;
+        }
+
+        .summary-stat-label {
+            color: var(--summary-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.35rem;
+        }
+
+        .summary-stat-value {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--summary-text);
+            line-height: 1.1;
+        }
+
+        .summary-stat-sub {
+            color: var(--summary-muted);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
+        .detail-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.9rem 1rem;
+        }
+
+        .detail-item {
+            border: 1px solid var(--summary-border);
+            border-radius: 0.85rem;
+            padding: 0.85rem 0.95rem;
+            background: #fff;
+        }
+
+        .detail-label {
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: var(--summary-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.3rem;
+        }
+
+        .detail-value {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--summary-text);
+            word-break: break-word;
+        }
+
+        .soft-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.42rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .soft-badge.success {
+            background: var(--summary-success-bg);
+            color: var(--summary-success-text);
+        }
+
+        .soft-badge.warning {
+            background: var(--summary-warning-bg);
+            color: var(--summary-warning-text);
+        }
+
+        .soft-badge.secondary {
+            background: var(--summary-secondary-bg);
+            color: var(--summary-secondary-text);
+        }
+
+        .btn-summary-primary {
+            background: var(--summary-blue);
+            border-color: var(--summary-blue);
+            color: #fff;
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 0.7rem 1.2rem;
+        }
+
+        .btn-summary-primary:hover {
+            background: var(--summary-blue-dark);
+            border-color: var(--summary-blue-dark);
+            color: #fff;
+        }
+
+        .btn-summary-outline {
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 0.7rem 1.2rem;
+        }
+
+        .helper-box {
+            background: var(--summary-info-bg);
+            color: var(--summary-info-text);
+            border: 1px solid #cfe1ff;
+            border-radius: 0.9rem;
+            padding: 1rem 1.1rem;
+        }
+
+        .helper-box-title {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .helper-box ul {
+            margin: 0;
+            padding-left: 1.1rem;
+        }
+
+        .helper-box li {
+            margin-bottom: 0.3rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .summary-hero-title {
+                font-size: 1.6rem;
+            }
+
+            .summary-date-box {
+                min-width: 100%;
+                border-left: 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.15);
+            }
+
+            .detail-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="summary-shell page-with-fixed-nav px-3 px-md-4 py-4">
+        <div class="mb-4">
+            <div class="summary-hero d-flex flex-column flex-lg-row justify-content-between align-items-stretch">
+                <div class="flex-grow-1 p-4 p-lg-5">
+                    <div class="summary-hero-title">Business Unit Details</div>
+                    <div class="mt-2 text-white-50">
+                        Review business unit identity, description, and operational status.
+                    </div>
+                </div>
+
+                <div class="summary-date-box d-flex flex-column justify-content-center align-items-center px-4 py-4">
+                    <div class="summary-date-label">Unit Code</div>
+                    <div class="summary-date-value">{{ $businessUnit->code }}</div>
+                </div>
             </div>
-            <a href="{{ route('business-units.edit', $businessUnit) }}"
-               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Edit
-            </a>
         </div>
 
-        <div class="bg-white shadow rounded-lg p-6 space-y-4">
-            <div>
-                <p class="text-sm text-gray-500">Code</p>
-                <p class="text-base font-medium text-gray-800">{{ $businessUnit->code }}</p>
-            </div>
-
-            <div>
-                <p class="text-sm text-gray-500">Name</p>
-                <p class="text-base font-medium text-gray-800">{{ $businessUnit->name }}</p>
-            </div>
-
-            <div>
-                <p class="text-sm text-gray-500">Description</p>
-                <p class="text-base font-medium text-gray-800">{{ $businessUnit->description ?? '-' }}</p>
-            </div>
-
-            <div>
-                <p class="text-sm text-gray-500">Status</p>
-                <p class="text-base font-medium text-gray-800">{{ ucfirst($businessUnit->status) }}</p>
-            </div>
-
-            <div class="pt-4">
-                <a href="{{ route('business-units.index') }}"
-                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('business-units.edit', $businessUnit) }}" class="btn btn-summary-primary">
+                    Edit Business Unit
+                </a>
+                <a href="{{ route('business-units.index') }}" class="btn btn-outline-secondary btn-summary-outline">
                     Back
                 </a>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="summary-stat">
+                    <div class="summary-stat-label">Code</div>
+                    <div class="summary-stat-value">{{ $businessUnit->code }}</div>
+                    <div class="summary-stat-sub">Unique business unit identifier</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="summary-stat">
+                    <div class="summary-stat-label">Name</div>
+                    <div class="summary-stat-value">{{ $businessUnit->name }}</div>
+                    <div class="summary-stat-sub">Display name used across the system</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="summary-stat">
+                    <div class="summary-stat-label">Status</div>
+                    <div class="summary-stat-value">{{ ucfirst($businessUnit->status) }}</div>
+                    <div class="summary-stat-sub">Current operational status</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="summary-card">
+                    <div class="summary-section-header">
+                        <h5>Business Unit Information</h5>
+                        <div class="summary-section-subtitle">
+                            Core identity and descriptive information for this business unit.
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="detail-list">
+                            <div class="detail-item">
+                                <div class="detail-label">Code</div>
+                                <div class="detail-value">{{ $businessUnit->code }}</div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-label">Name</div>
+                                <div class="detail-value">{{ $businessUnit->name }}</div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-label">Status</div>
+                                <div class="detail-value">
+                                    <span class="soft-badge {{ $businessUnit->status === 'active' ? 'success' : 'warning' }}">
+                                        {{ ucfirst($businessUnit->status) }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <div class="detail-label">Description</div>
+                                <div class="detail-value">{{ $businessUnit->description ?? '-' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="helper-box mb-4">
+                    <div class="helper-box-title">Business Unit Notes</div>
+                    <ul>
+                        <li>Business units define the top-level grouping of branches and reporting.</li>
+                        <li>Unit code and name affect admin setup, summaries, and future system expansion.</li>
+                        <li>Status can affect whether the unit is used in current operations.</li>
+                    </ul>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-section-header">
+                        <h5>Reference Summary</h5>
+                        <div class="summary-section-subtitle">
+                            Quick review of business unit setup.
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <div class="detail-list">
+                            <div class="detail-item">
+                                <div class="detail-label">Code</div>
+                                <div class="detail-value">{{ $businessUnit->code }}</div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-label">Status</div>
+                                <div class="detail-value">{{ ucfirst($businessUnit->status) }}</div>
+                            </div>
+
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <div class="detail-label">Name</div>
+                                <div class="detail-value">{{ $businessUnit->name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

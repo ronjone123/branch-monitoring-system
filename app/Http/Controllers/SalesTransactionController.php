@@ -17,8 +17,10 @@ class SalesTransactionController extends Controller
     {
         $query = $this->filteredQuery($request);
 
-        $transactions = $query->with(['branch', 'importBatch'])
-            ->latest()
+        $transactions = $this->applySorting(
+                $query->with(['branch', 'importBatch']),
+                $request
+            )
             ->paginate(20)
             ->withQueryString();
 
@@ -54,9 +56,10 @@ class SalesTransactionController extends Controller
     {
         $fileName = 'sales_transactions_' . now()->format('Ymd_His') . '.csv';
 
-        $transactions = $this->filteredQuery($request)
-            ->with(['branch', 'importBatch'])
-            ->latest()
+        $transactions = $this->applySorting(
+                $this->filteredQuery($request)->with(['branch', 'importBatch', 'importBatchSheet']),
+                $request
+            )
             ->get();
 
         $headers = [
@@ -67,7 +70,6 @@ class SalesTransactionController extends Controller
         return response()->stream(function () use ($transactions) {
             $handle = fopen('php://output', 'w');
 
-            // UTF-8 BOM for Excel compatibility
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, [
@@ -83,7 +85,6 @@ class SalesTransactionController extends Controller
                 'Transaction Type',
                 'Receipt Number',
                 'Sales Source',
-
                 'Unit Type',
                 'Line',
                 'Category',
@@ -98,7 +99,6 @@ class SalesTransactionController extends Controller
                 'Color',
                 'Stock Code',
                 'Product Remarks',
-
                 'SRP / COD Amount',
                 'Cash Amount',
                 'Downpayment Amount',
@@ -107,7 +107,6 @@ class SalesTransactionController extends Controller
                 'Commission Amount',
                 'Monthly Amortization',
                 'Terms',
-
                 'Branch',
                 'Import Batch',
                 'Import Sheet',
@@ -131,7 +130,6 @@ class SalesTransactionController extends Controller
                     $transaction->transaction_type,
                     $transaction->receipt_number,
                     $transaction->sales_source,
-
                     $transaction->unit_type,
                     $transaction->product_line_name,
                     $transaction->category_name_raw,
@@ -146,7 +144,6 @@ class SalesTransactionController extends Controller
                     $transaction->color,
                     $transaction->stock_code,
                     $transaction->product_remarks,
-
                     $transaction->srp_cod_amount,
                     $transaction->cash_amount,
                     $transaction->downpayment_amount,
@@ -155,7 +152,6 @@ class SalesTransactionController extends Controller
                     $transaction->commission_amount,
                     $transaction->monthly_amortization,
                     $transaction->terms,
-
                     $transaction->branch->display_name ?? null,
                     $transaction->import_batch_id,
                     $transaction->importBatchSheet->sheet_name ?? null,
@@ -191,5 +187,42 @@ class SalesTransactionController extends Controller
             ->when($request->filled('date_to'), function ($query) use ($request) {
                 $query->whereDate('invoice_date', '<=', $request->date_to);
             });
+    }
+
+    private function applySorting($query, Request $request)
+    {
+        $sortBy = $request->get('sort_by', 'newest');
+
+        return match ($sortBy) {
+            'oldest' => $query->orderBy('invoice_date', 'asc')
+                ->orderBy('id', 'asc'),
+
+            'customer_asc' => $query->orderBy('customer_name', 'asc')
+                ->orderBy('id', 'asc'),
+
+            'customer_desc' => $query->orderBy('customer_name', 'desc')
+                ->orderBy('id', 'desc'),
+
+            'pn_high' => $query->orderBy('promissory_note_amount', 'desc')
+                ->orderBy('id', 'desc'),
+
+            'pn_low' => $query->orderBy('promissory_note_amount', 'asc')
+                ->orderBy('id', 'asc'),
+
+            'cash_high' => $query->orderBy('cash_amount', 'desc')
+                ->orderBy('id', 'desc'),
+
+            'cash_low' => $query->orderBy('cash_amount', 'asc')
+                ->orderBy('id', 'asc'),
+
+            'srp_high' => $query->orderBy('srp_cod_amount', 'desc')
+                ->orderBy('id', 'desc'),
+
+            'srp_low' => $query->orderBy('srp_cod_amount', 'asc')
+                ->orderBy('id', 'asc'),
+
+            default => $query->orderBy('invoice_date', 'desc')
+                ->orderBy('id', 'desc'),
+        };
     }
 }

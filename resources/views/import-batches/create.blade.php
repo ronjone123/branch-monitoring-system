@@ -195,6 +195,66 @@
             padding: 0.7rem 1.2rem;
         }
 
+        .page-loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 59, 120, 0.28);
+            backdrop-filter: blur(3px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-loading-overlay.d-none {
+            display: none !important;
+        }
+
+        .page-loading-box {
+            width: min(92vw, 420px);
+            background: #ffffff;
+            border: 1px solid #cfd9ea;
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 60px rgba(15, 59, 120, 0.18);
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .page-loading-spinner {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1rem;
+            border: 5px solid #d9e6f7;
+            border-top-color: #0f3b78;
+            border-radius: 50%;
+            animation: pageSpin 0.9s linear infinite;
+        }
+
+        .page-loading-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #162033;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .page-loading-text {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        body.loading-active {
+            overflow: hidden;
+        }
+
+        @keyframes pageSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .btn-summary-primary:hover {
             background: var(--summary-blue-dark);
             border-color: var(--summary-blue-dark);
@@ -211,6 +271,7 @@
             display: block;
             margin-top: 0.4rem;
         }
+        
 
         @media (max-width: 991.98px) {
             .summary-hero-title {
@@ -279,7 +340,11 @@
                     </div>
 
                     <div class="form-panel">
-                        <form action="{{ route('import-batches.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('import-batches.store') }}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            data-loading="true"
+                            data-loading-message="Uploading and preparing the import batch. Please wait...">
                             @csrf
 
                             <div class="mb-4">
@@ -377,4 +442,45 @@
             </div>
         </div>
     </div>
+
+        <div id="pageLoadingOverlay" class="page-loading-overlay d-none">
+            <div class="page-loading-box">
+                <div class="page-loading-spinner"></div>
+                <div class="page-loading-title">Processing Request</div>
+                <div class="page-loading-text">
+                    Please wait while the system uploads and processes the file.
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const overlay = document.getElementById('pageLoadingOverlay');
+
+        function showLoading(message = null) {
+            if (!overlay) return;
+
+            if (message) {
+                const text = overlay.querySelector('.page-loading-text');
+                if (text) text.textContent = message;
+            }
+
+            overlay.classList.remove('d-none');
+            document.body.classList.add('loading-active');
+        }
+
+        document.querySelectorAll('form[data-loading="true"]').forEach(form => {
+            form.addEventListener('submit', function () {
+                const message = form.getAttribute('data-loading-message');
+                showLoading(message);
+
+                const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                submitButtons.forEach(btn => {
+                    btn.disabled = true;
+                });
+            });
+        });
+    });
+</script>
 </x-app-layout>

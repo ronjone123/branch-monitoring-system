@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Jobs\ParseImportBatchSheets;
 
 class ImportBatchController extends Controller
 {
@@ -89,6 +90,10 @@ class ImportBatchController extends Controller
         ImportBatchSheet $sheet,
         TransactionSheetParser $parser
     ): RedirectResponse {
+        set_time_limit(300);
+        ini_set('max_execution_time', '300');
+        ini_set('memory_limit', '512M');
+
         abort_unless($sheet->import_batch_id === $import_batch->id, 404);
 
         $parser->parse($import_batch, $sheet);
@@ -99,30 +104,23 @@ class ImportBatchController extends Controller
     }
 
     public function parseAllSheets(
-        ImportBatch $import_batch,
-        TransactionSheetParser $parser
+        ImportBatch $import_batch
     ): RedirectResponse {
-        $transactionSheets = $import_batch->sheets()
-            ->where('sheet_type', 'transaction')
-            ->get();
-
-        $parsedSheets = 0;
-        $totalImportedRows = 0;
-
-        foreach ($transactionSheets as $sheet) {
-            if ($sheet->status === 'imported' && $sheet->imported_rows > 0) {
-                continue;
-            }
-
-            $imported = $parser->parse($import_batch, $sheet);
-
-            $totalImportedRows += $imported;
-            $parsedSheets++;
+        if ($import_batch->status === 'processing') {
+            return redirect()
+                ->route('import-batches.show', $import_batch)
+                ->with('success', 'This batch is already being processed.');
         }
+
+        $import_batch->update([
+            'status' => 'queued',
+        ]);
+
+        ParseImportBatchSheets::dispatch($import_batch->id);
 
         return redirect()
             ->route('import-batches.show', $import_batch)
-            ->with('success', "Parsed {$parsedSheets} transaction sheet(s), imported {$totalImportedRows} row(s).");
+            ->with('success', 'Parse all has started in the background. Please refresh this page after a while.');
     }
 
     public function resetSheet(ImportBatchSheet $import_batch_sheet): RedirectResponse
