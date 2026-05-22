@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -50,8 +51,9 @@ class DashboardController extends Controller
             return $query;
         };
 
-        $applianceCashBaseQuery = function () use ($dateFrom, $dateTo) {
+        $applianceCashBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->where('code', 'L4');
                 })
@@ -67,8 +69,9 @@ class DashboardController extends Controller
                 });
         };
 
-        $motorcycleCashBaseQuery = function () use ($dateFrom, $dateTo) {
+        $motorcycleCashBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->whereIn('code', ['L4', 'M8']);
                 })
@@ -82,8 +85,9 @@ class DashboardController extends Controller
                     $query->whereDate('invoice_date', '<=', $dateTo);
                 });
         };
-        $combinedCashBaseQuery = function () use ($dateFrom, $dateTo) {
+        $combinedCashBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->whereIn('code', ['L4', 'M8']);
                 })
@@ -99,8 +103,9 @@ class DashboardController extends Controller
                 });
         };
 
-        $applianceInstallmentBaseQuery = function () use ($dateFrom, $dateTo) {
+        $applianceInstallmentBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->where('code', 'L4');
                 })
@@ -117,8 +122,9 @@ class DashboardController extends Controller
                 });
         };
 
-        $motorcycleInstallmentBaseQuery = function () use ($dateFrom, $dateTo) {
+        $motorcycleInstallmentBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->whereIn('code', ['L4', 'M8']);
                 })
@@ -134,8 +140,9 @@ class DashboardController extends Controller
                 });
         };
 
-        $combinedInstallmentBaseQuery = function () use ($dateFrom, $dateTo) {
+        $combinedInstallmentBaseQuery = function () use ($dateFrom, $dateTo, $filteredBranchIds) {
             return SalesTransaction::query()
+                ->whereIn('branch_id', $filteredBranchIds)
                 ->whereHas('branch.businessUnit', function ($query) {
                     $query->whereIn('code', ['L4', 'M8']);
                 })
@@ -164,8 +171,335 @@ class DashboardController extends Controller
 
         $transactionsBaseQuery = $applyTransactionFilters(SalesTransaction::query());
 
+        $salesAmountExpression = "
+            COALESCE(
+                NULLIF(promissory_note_amount, 0),
+                NULLIF(cash_amount, 0),
+                NULLIF(gross_sales_amount, 0),
+                NULLIF(amount, 0),
+                0
+            )
+        ";
+
+        $onlyFinancialSales = function ($query) {
+            $query->where(function ($amountQuery) {
+                $amountQuery->where('cash_amount', '>', 0)
+                    ->orWhere('promissory_note_amount', '>', 0)
+                    ->orWhere('gross_sales_amount', '>', 0)
+                    ->orWhere('amount', '>', 0);
+            });
+        };
+
+
+        $customerNameExpression = "UPPER(TRIM(customer_name))";
+        $contactExpression = "UPPER(TRIM(COALESCE(contact_number, '')))";
+
+        $topRepeatCustomers = (clone $transactionsBaseQuery)
+            ->where($onlyFinancialSales)
+            ->selectRaw("MAX(id) as latest_sales_transaction_id")
+            ->selectRaw("MAX(customer_name) as customer_name")
+            ->selectRaw("MAX(contact_number) as contact_number")
+            ->selectRaw("COUNT(*) as transaction_count")
+            ->selectRaw("COUNT(DISTINCT NULLIF(account_number, '')) as account_count")
+            ->selectRaw("SUM(COALESCE(promissory_note_amount, 0)) as total_pn_amount")
+            ->selectRaw("SUM($salesAmountExpression) as total_sales_amount")
+            ->selectRaw("MIN(invoice_date) as first_purchase_date")
+            ->selectRaw("MAX(invoice_date) as latest_purchase_date")
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
+            ->groupByRaw($customerNameExpression)
+            ->groupByRaw($contactExpression)
+            ->havingRaw("COUNT(DISTINCT NULLIF(account_number, '')) > 1 OR COUNT(*) > 1")
+            ->orderByDesc('account_count')
+            ->orderByDesc('transaction_count')
+            ->orderByDesc('total_sales_amount')
+            ->limit(10)
+            ->get();
+
+        $topPnCustomers = (clone $transactionsBaseQuery)
+            ->where($onlyFinancialSales)
+            ->selectRaw("MAX(id) as sales_transaction_id")
+            ->selectRaw("MAX(customer_name) as customer_name")
+            ->selectRaw("MAX(account_number) as account_number")
+            ->selectRaw("MAX(receipt_number) as receipt_number")
+            ->selectRaw("MAX(product_line_name) as product_line_name")
+            ->selectRaw("MAX(brand_name_raw) as brand_name")
+            ->selectRaw("MAX(model) as model")
+            ->selectRaw("SUM(COALESCE(promissory_note_amount, 0)) as total_pn_amount")
+            ->selectRaw("MAX(invoice_date) as latest_purchase_date")
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
+            ->whereNotNull('promissory_note_amount')
+            ->where('promissory_note_amount', '>', 0)
+            ->groupByRaw("UPPER(TRIM(account_number))")
+            ->orderByDesc('total_pn_amount')
+            ->limit(10)
+            ->get();
+
+        $latestRepeatCustomers = (clone $transactionsBaseQuery)
+            ->where($onlyFinancialSales)
+            ->selectRaw("MAX(id) as latest_sales_transaction_id")
+            ->selectRaw("MAX(customer_name) as customer_name")
+            ->selectRaw("MAX(contact_number) as contact_number")
+            ->selectRaw("COUNT(*) as transaction_count")
+            ->selectRaw("COUNT(DISTINCT NULLIF(account_number, '')) as account_count")
+            ->selectRaw("MAX(invoice_date) as latest_purchase_date")
+            ->whereNotNull('customer_name')
+            ->where('customer_name', '!=', '')
+            ->groupByRaw($customerNameExpression)
+            ->groupByRaw($contactExpression)
+            ->havingRaw("COUNT(DISTINCT NULLIF(account_number, '')) > 1 OR COUNT(*) > 1")
+            ->orderByDesc('latest_purchase_date')
+            ->limit(10)
+            ->get();
+
+        $topRepeatCustomerInsight = $topRepeatCustomers->first();
+        $topPnCustomerInsight = $topPnCustomers->first();
+
+        $topBrands = (clone $transactionsBaseQuery)
+            ->select(
+                'brand_name_raw as brand_name',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw("SUM($salesAmountExpression) as total_amount")
+            )
+            ->whereNotNull('brand_name_raw')
+            ->where('brand_name_raw', '!=', '')
+            ->groupBy('brand_name_raw')
+            ->orderByDesc('transaction_count')
+            ->limit(10)
+            ->get();
+
+        $validProductLines = [
+            'MOTORCYCLE',
+            'APPLIANCE',
+            'APPLIANCES',
+            'FURNITURE',
+            'BED OR FOAM',
+            'BED FOAM',
+            'FOAM',
+        ];
+
+        $topProductLines = (clone $transactionsBaseQuery)
+            ->selectRaw('UPPER(TRIM(product_line_name)) as product_line')
+            ->selectRaw('COUNT(*) as transaction_count')
+            ->selectRaw("SUM($salesAmountExpression) as total_amount")
+            ->whereNotNull('product_line_name')
+            ->where('product_line_name', '!=', '')
+            ->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), $validProductLines)
+            ->groupBy(DB::raw('UPPER(TRIM(product_line_name))'))
+            ->orderByDesc('transaction_count')
+            ->limit(10)
+            ->get();
+
+        $productNameExpression = "
+            COALESCE(
+                NULLIF(model, ''),
+                NULLIF(product_description, ''),
+                NULLIF(product, ''),
+                'Unknown Product'
+            )
+        ";
+
+        $hotProducts = (clone $transactionsBaseQuery)
+            ->selectRaw("$productNameExpression as product_name")
+            ->selectRaw('COUNT(*) as transaction_count')
+            ->selectRaw("SUM($salesAmountExpression) as total_amount")
+            ->groupBy('product_name')
+            ->orderByDesc('transaction_count')
+            ->limit(10)
+            ->get();
+
+        $totalTermTransactions = (clone $transactionsBaseQuery)
+            ->whereNotNull('terms')
+            ->where('terms', '!=', '')
+            ->count();
+
+        $topTerms = (clone $transactionsBaseQuery)
+            ->select(
+                'terms',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw("SUM($salesAmountExpression) as total_amount")
+            )
+            ->whereNotNull('terms')
+            ->where('terms', '!=', '')
+            ->groupBy('terms')
+            ->orderByDesc('transaction_count')
+            ->limit(10)
+            ->get()
+            ->map(function ($term) use ($totalTermTransactions) {
+                $term->percentage = $totalTermTransactions > 0
+                    ? round(($term->transaction_count / $totalTermTransactions) * 100, 2)
+                    : 0;
+
+                return $term;
+            });
+
+        $topBrandInsight = $topBrands->first();
+        $hotProductInsight = $hotProducts->first();
+        $highestTermInsight = $topTerms->sortByDesc('percentage')->first();
+
+        $filteredTransactionCount = (clone $transactionsBaseQuery)->count();
+
+        $filteredTotalAmount = (clone $transactionsBaseQuery)
+            ->sum('promissory_note_amount');
+
+        $filteredCashAmount = (clone $transactionsBaseQuery)
+            ->sum('cash_amount');
+
+        $latestAvailableTransactionDate = (clone $transactionsBaseQuery)
+            ->whereNotNull('invoice_date')
+            ->max('invoice_date');
+
+        $filteredBranchCount = (clone $transactionsBaseQuery)
+            ->whereNotNull('branch_id')
+            ->distinct('branch_id')
+            ->count('branch_id');
+
+        $topFilteredBranchResult = (clone $transactionsBaseQuery)
+            ->select(
+                'sales_transactions.branch_id',
+                DB::raw('COUNT(sales_transactions.id) as transaction_count'),
+                DB::raw('SUM(COALESCE(sales_transactions.promissory_note_amount, 0)) as filtered_total_amount')
+            )
+            ->whereNotNull('sales_transactions.branch_id')
+            ->groupBy('sales_transactions.branch_id')
+            ->orderByDesc('filtered_total_amount')
+            ->first();
+
+        $topFilteredBranch = null;
+
+        if ($topFilteredBranchResult) {
+            $branch = \App\Models\Branch::find($topFilteredBranchResult->branch_id);
+
+            $topFilteredBranch = (object) [
+                'branch_id' => $topFilteredBranchResult->branch_id,
+                'branch_name' => $branch?->display_name ?? 'Branch #' . $topFilteredBranchResult->branch_id,
+                'branch_code' => $branch?->code ?? '-',
+                'transaction_count' => $topFilteredBranchResult->transaction_count,
+                'filtered_total_amount' => $topFilteredBranchResult->filtered_total_amount,
+            ];
+        }
+
+
+        $topFilteredBusinessUnitResult = (clone $transactionsBaseQuery)
+            ->join('branches', 'sales_transactions.branch_id', '=', 'branches.id')
+            ->select(
+                'branches.business_unit_id',
+                DB::raw('COUNT(sales_transactions.id) as transaction_count'),
+                DB::raw('SUM(COALESCE(sales_transactions.promissory_note_amount, 0)) as filtered_total_amount')
+            )
+            ->whereNotNull('branches.business_unit_id')
+            ->groupBy('branches.business_unit_id')
+            ->orderByDesc('filtered_total_amount')
+            ->first();
+
+        $topFilteredBusinessUnit = null;
+
+        if ($topFilteredBusinessUnitResult) {
+            $businessUnit = \App\Models\BusinessUnit::find($topFilteredBusinessUnitResult->business_unit_id);
+
+            $topFilteredBusinessUnit = (object) [
+                'business_unit_id' => $topFilteredBusinessUnitResult->business_unit_id,
+                'name' => $businessUnit?->name ?? 'Business Unit #' . $topFilteredBusinessUnitResult->business_unit_id,
+                'code' => $businessUnit?->code ?? '-',
+                'transaction_count' => $topFilteredBusinessUnitResult->transaction_count,
+                'filtered_total_amount' => $topFilteredBusinessUnitResult->filtered_total_amount,
+            ];
+        }
+
+        $activeFilteredBranches = $filteredBranchCount;
+
+        $comparisonEnabled = false;
+
+        $previousPeriodStart = null;
+        $previousPeriodEnd = null;
+
+        $previousPeriodTransactionCount = 0;
+        $previousPeriodAmount = 0;
+        $previousPeriodCashAmount = 0;
+        $previousPeriodBranchCount = 0;
+
+        $transactionChangePercent = null;
+        $amountChangePercent = null;
+        $cashAmountChangePercent = null;
+        $branchCountChangePercent = null;
+
+        $calculatePercentChange = function ($current, $previous): ?float {
+            if ((float) $previous === 0.0) {
+                return null;
+            }
+
+            return (((float) $current - (float) $previous) / abs((float) $previous)) * 100;
+        };
+
+        if ($dateFrom && $dateTo) {
+            $currentPeriodStart = Carbon::parse($dateFrom)->startOfDay();
+            $currentPeriodEnd = Carbon::parse($dateTo)->endOfDay();
+
+            if ($currentPeriodStart->lte($currentPeriodEnd)) {
+                $comparisonEnabled = true;
+
+                $periodDays = $currentPeriodStart->diffInDays($currentPeriodEnd) + 1;
+
+                $previousPeriodEnd = $currentPeriodStart->copy()->subDay();
+                $previousPeriodStart = $previousPeriodEnd->copy()->subDays($periodDays - 1);
+
+                $previousPeriodQuery = SalesTransaction::query();
+
+                if ($filteredBranchIds->isNotEmpty()) {
+                    $previousPeriodQuery->whereIn('branch_id', $filteredBranchIds);
+                } else {
+                    $previousPeriodQuery->whereRaw('1 = 0');
+                }
+
+                $previousPeriodQuery
+                    ->whereDate('invoice_date', '>=', $previousPeriodStart->toDateString())
+                    ->whereDate('invoice_date', '<=', $previousPeriodEnd->toDateString());
+
+                $previousPeriodTransactionCount = (clone $previousPeriodQuery)->count();
+
+                $previousPeriodAmount = (clone $previousPeriodQuery)
+                    ->sum('promissory_note_amount');
+
+                $previousPeriodCashAmount = (clone $previousPeriodQuery)
+                    ->sum('cash_amount');
+
+                $previousPeriodBranchCount = (clone $previousPeriodQuery)
+                    ->whereNotNull('branch_id')
+                    ->distinct('branch_id')
+                    ->count('branch_id');
+
+                $transactionChangePercent = $calculatePercentChange(
+                    $filteredTransactionCount,
+                    $previousPeriodTransactionCount
+                );
+
+                $amountChangePercent = $calculatePercentChange(
+                    $filteredTotalAmount,
+                    $previousPeriodAmount
+                );
+
+                $cashAmountChangePercent = $calculatePercentChange(
+                    $filteredCashAmount,
+                    $previousPeriodCashAmount
+                );
+
+                $branchCountChangePercent = $calculatePercentChange(
+                    $filteredBranchCount,
+                    $previousPeriodBranchCount
+                );
+            }
+        }
+
         $today = now()->toDateString();
         $currentMonthStart = now()->startOfMonth()->toDateString();
+
+        $reportDay = $dateTo ?: $today;
+
+        $reportPeriodStart = $dateFrom
+            ?: ($dateTo
+                ? \Carbon\Carbon::parse($dateTo)->startOfMonth()->toDateString()
+                : $currentMonthStart);
 
         $todayTransactionsQuery = $applyTransactionFilters(SalesTransaction::query())
             ->whereDate('invoice_date', $today);
@@ -216,29 +550,30 @@ class DashboardController extends Controller
             ->values();
 
         $applianceCashSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->where('code', 'L4');
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $applianceCashBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $applianceCashBaseQuery) {
                 $base = fn () => $applianceCashBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -257,8 +592,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_cod'   => (clone $toDateRepo)->sum('cash_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('cash_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('cash_amount'),
                 ];
             })
             ->values();
@@ -277,29 +612,30 @@ class DashboardController extends Controller
         ];
 
         $applianceInstallmentSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->where('code', 'L4');
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $applianceInstallmentBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $applianceInstallmentBaseQuery) {
                 $base = fn () => $applianceInstallmentBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -318,8 +654,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_amount' => (clone $toDateRepo)->sum('promissory_note_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('promissory_note_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('promissory_note_amount'),
                 ];
             })
             ->values();
@@ -338,29 +674,30 @@ class DashboardController extends Controller
         ];
 
         $motorcycleCashSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->whereIn('code', ['L4', 'M8']);
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $motorcycleCashBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $motorcycleCashBaseQuery) {
                 $base = fn () => $motorcycleCashBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -379,8 +716,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_cod'   => (clone $toDateRepo)->sum('cash_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('cash_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('cash_amount'),
                 ];
             })
             ->values();
@@ -399,29 +736,30 @@ class DashboardController extends Controller
         ];
 
         $motorcycleInstallmentSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->whereIn('code', ['L4', 'M8']);
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $motorcycleInstallmentBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $motorcycleInstallmentBaseQuery) {
                 $base = fn () => $motorcycleInstallmentBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -440,8 +778,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_amount' => (clone $toDateRepo)->sum('promissory_note_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('promissory_note_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('promissory_note_amount'),
                 ];
             })
             ->values();
@@ -460,29 +798,30 @@ class DashboardController extends Controller
         ];
 
         $combinedCashSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->whereIn('code', ['L4', 'M8']);
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $combinedCashBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $combinedCashBaseQuery) {
                 $base = fn () => $combinedCashBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -502,8 +841,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_cod'   => (clone $toDateRepo)->sum('cash_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('cash_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_cod'   => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('cash_amount'),
                 ];
             })
             ->values();
@@ -526,29 +865,30 @@ class DashboardController extends Controller
         ];
 
         $combinedInstallmentSummary = Branch::query()
+            ->whereIn('id', $filteredBranchIds)
             ->whereHas('businessUnit', function ($query) {
                 $query->whereIn('code', ['L4', 'M8']);
             })
             ->with('businessUnit')
             ->orderBy('display_name')
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $combinedInstallmentBaseQuery) {
+            ->map(function ($branch) use ($reportDay, $reportPeriodStart, $combinedInstallmentBaseQuery) {
                 $base = fn () => $combinedInstallmentBaseQuery()->where('branch_id', $branch->id);
 
                 $todayBrandNew = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', '!=', 'REPO');
 
                 $todayRepo = $base()
-                    ->whereDate('invoice_date', $today)
+                    ->whereDate('invoice_date', $reportDay)
                     ->where('unit_type', 'REPO');
 
                 $toDateBrandNew = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', '!=', 'REPO');
 
                 $toDateRepo = $base()
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today])
+                    ->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])
                     ->where('unit_type', 'REPO');
 
                 return (object) [
@@ -567,8 +907,8 @@ class DashboardController extends Controller
                     'todate_repo_units' => (clone $toDateRepo)->count(),
                     'todate_repo_amount' => (clone $toDateRepo)->sum('promissory_note_amount'),
 
-                    'total_units' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->count(),
-                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$currentMonthStart, $today])->sum('promissory_note_amount'),
+                    'total_units' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->count(),
+                    'total_amount' => (clone $base())->whereBetween('invoice_date', [$reportPeriodStart, $reportDay])->sum('promissory_note_amount'),
                 ];
             })
             ->values();
@@ -706,6 +1046,11 @@ class DashboardController extends Controller
             'totalSalesTransactions',
             'totalUsers',
             'totalImportedAmount',
+            'filteredTransactionCount',
+            'filteredTotalAmount',
+            'filteredCashAmount',
+            'latestAvailableTransactionDate',
+            'filteredBranchCount',
             'latestImportBatches',
             'latestTransactions',
             'branchTotals',
@@ -745,6 +1090,32 @@ class DashboardController extends Controller
             'motorcycleInstallmentTotals',
             'combinedInstallmentSummary',
             'combinedInstallmentTotals',
+            'comparisonEnabled',
+            'previousPeriodStart',
+            'previousPeriodEnd',
+            'previousPeriodTransactionCount',
+            'previousPeriodAmount',
+            'previousPeriodCashAmount',
+            'previousPeriodBranchCount',
+            'transactionChangePercent',
+            'amountChangePercent',
+            'cashAmountChangePercent',
+            'branchCountChangePercent',
+            'topFilteredBranch',
+            'topFilteredBusinessUnit',
+            'activeFilteredBranches',
+            'topBrands',
+            'topProductLines',
+            'hotProducts',
+            'topTerms',
+            'topBrandInsight',
+            'hotProductInsight',
+            'highestTermInsight',
+            'topRepeatCustomers',
+            'topPnCustomers',
+            'latestRepeatCustomers',
+            'topRepeatCustomerInsight',
+            'topPnCustomerInsight',
         ));
     }
 }

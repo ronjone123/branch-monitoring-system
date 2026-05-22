@@ -319,10 +319,24 @@
                 Reviewing <strong>{{ $transactions->total() }}</strong> transaction record(s)
             </div>
 
+            @php
+                $canExportSalesTransactions = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer']);
+            @endphp
+
             <div>
-                <a href="{{ route('sales-transactions.export', request()->query()) }}" class="btn btn-success btn-summary-success">
-                    Export CSV
-                </a>
+                @if($canExportSalesTransactions)
+                    <a href="{{ route('sales-transactions.export', request()->query()) }}"
+                    class="btn btn-success btn-summary-success">
+                        Export CSV
+                    </a>
+                @else
+                    <button type="button"
+                            class="btn btn-secondary btn-summary-success opacity-50"
+                            disabled
+                            title="Export is only available for Super Admin, Admin, and Importer.">
+                        Export CSV
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -356,7 +370,7 @@
             <div class="summary-section-header">
                 <h5>Transaction Filters</h5>
                 <div class="summary-section-subtitle">
-                    Narrow results by branch, import batch, customer, account number, and date range.
+                    Narrow results by branch, import batch, product group, transaction type, unit type, customer, account number, and date range.
                 </div>
             </div>
 
@@ -468,11 +482,32 @@
                         </div>
 
                     <div class="col-md-3">
-                        <label for="sales_type" class="form-label">Sales Type</label>
-                        <select name="sales_type" id="sales_type" class="form-select">
-                            <option value="">All Sales Types</option>
-                            <option value="CASH" {{ request('sales_type') === 'CASH' ? 'selected' : '' }}>Cash</option>
-                            <option value="INSTALLMENT" {{ request('sales_type') === 'INSTALLMENT' ? 'selected' : '' }}>Installment</option>
+                        <label for="product_group" class="form-label">Product Group</label>
+                        <select name="product_group" id="product_group" class="form-select">
+                            <option value="">All Product Groups</option>
+
+                            <option value="motorcycle" {{ request('product_group') === 'motorcycle' ? 'selected' : '' }}>
+                                Motorcycle
+                            </option>
+
+                            <option value="appliance" {{ request('product_group') === 'appliance' ? 'selected' : '' }}>
+                                Appliance
+                            </option>
+
+                            <option value="furniture" {{ request('product_group') === 'furniture' ? 'selected' : '' }}>
+                                Furniture
+                            </option>
+
+                            <option value="bed_foam" {{ request('product_group') === 'bed_foam' ? 'selected' : '' }}>
+                                Bed / Foam
+                            </option>
+
+                            <option value="non_motorcycle" {{ request('product_group') === 'non_motorcycle' ? 'selected' : '' }}>
+                                Appliance / Furniture / Foam
+                            </option>
+                            <option value="spare_parts" {{ request('product_group') === 'spare_parts' ? 'selected' : '' }}>
+                                Spare Parts
+                            </option>
                         </select>
                     </div>
 
@@ -480,8 +515,28 @@
                         <label for="transaction_type" class="form-label">Transaction Type</label>
                         <select name="transaction_type" id="transaction_type" class="form-select">
                             <option value="">All Transaction Types</option>
-                            <option value="MOTORCYCLE" {{ request('transaction_type') === 'MOTORCYCLE' ? 'selected' : '' }}>Motorcycle</option>
-                            <option value="APPLIANCE" {{ request('transaction_type') === 'APPLIANCE' ? 'selected' : '' }}>Appliance</option>
+
+                            <option value="cash_sales" {{ request('transaction_type') === 'cash_sales' ? 'selected' : '' }}>
+                                Cash Sales
+                            </option>
+
+                            <option value="installment_sales" {{ request('transaction_type') === 'installment_sales' ? 'selected' : '' }}>
+                                Installment Sales
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="unit_type" class="form-label">Unit Type</label>
+                        <select name="unit_type" id="unit_type" class="form-select">
+                            <option value="">All Unit Types</option>
+
+                            <option value="brand_new" {{ request('unit_type') === 'brand_new' ? 'selected' : '' }}>
+                                Brand New
+                            </option>
+
+                            <option value="repo" {{ request('unit_type') === 'repo' ? 'selected' : '' }}>
+                                Repo
+                            </option>
                         </select>
                     </div>
 

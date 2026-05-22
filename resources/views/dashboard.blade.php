@@ -31,6 +31,41 @@
             margin: 0 auto;
         }
 
+        .dashboard-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+        }
+
+        .dashboard-chart-box {
+            background: #ffffff;
+            border: 2px solid #d9e4f4;
+            border-radius: 1rem;
+            padding: 1rem;
+            min-height: 310px;
+            box-shadow: 0 8px 20px rgba(15, 59, 120, 0.04);
+        }
+
+        .dashboard-chart-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--summary-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.85rem;
+        }
+
+        .dashboard-chart-canvas {
+            position: relative;
+            height: 245px;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .summary-hero {
             background: linear-gradient(135deg, var(--summary-blue), var(--summary-blue-dark));
             color: #fff;
@@ -259,6 +294,157 @@
             vertical-align: middle;
         }
 
+        .dashboard-filter-control {
+            border-radius: 0.85rem;
+            border: 1px solid var(--summary-border);
+            min-height: 46px;
+            box-shadow: none;
+        }
+
+        .dashboard-filter-control:focus {
+            border-color: #7aa7e8;
+            box-shadow: 0 0 0 0.2rem rgba(15, 59, 120, 0.08);
+        }
+
+
+        .dashboard-control-center {
+            background: linear-gradient(180deg, #ffffff, #f8fbff);
+            border: 1px solid var(--summary-border);
+            border-radius: 1rem;
+            box-shadow: 0 10px 28px rgba(15, 59, 120, 0.08);
+            overflow: hidden;
+        }
+
+        .dashboard-control-top {
+            background:
+                radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%),
+                linear-gradient(135deg, var(--summary-blue), var(--summary-blue-dark));
+            color: #fff;
+            padding: 1.15rem 1.25rem;
+        }
+
+        .dashboard-control-title {
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 0;
+        }
+
+        .dashboard-control-subtitle {
+            margin: 0.25rem 0 0;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.9rem;
+        }
+
+        .dashboard-control-body {
+            padding: 1.25rem;
+        }
+
+        .dashboard-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.42rem 0.75rem;
+            border-radius: 999px;
+            background: #eef4ff;
+            border: 1px solid #c7d6ee;
+            color: var(--summary-blue);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .dashboard-filter-chip.muted {
+            background: #f8fafc;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+
+        .dashboard-preset-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .dashboard-preset-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid #c7d6ee;
+            background: #fff;
+            color: var(--summary-blue);
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .dashboard-preset-btn:hover {
+            background: #eef4ff;
+            color: var(--summary-blue-dark);
+            border-color: #9fb9e9;
+        }
+
+        .dashboard-empty-state {
+            border: 1px dashed #b9c9e4;
+            background: #f8fbff;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            color: var(--summary-text);
+        }
+
+        .dashboard-empty-state-title {
+            font-weight: 800;
+            color: var(--summary-blue);
+            margin-bottom: 0.35rem;
+        }
+
+        .dashboard-empty-state-text {
+            color: var(--summary-muted);
+            margin: 0;
+        }
+
+        .btn-dashboard-primary {
+            background: var(--summary-blue);
+            border-color: var(--summary-blue);
+            color: #fff;
+            border-radius: 999px;
+            font-weight: 700;
+            min-height: 46px;
+            padding-inline: 1.1rem;
+        }
+
+        .btn-dashboard-primary:hover {
+            background: var(--summary-blue-dark);
+            border-color: var(--summary-blue-dark);
+            color: #fff;
+        }
+
+        .btn-dashboard-outline {
+            border: 1px solid var(--summary-border);
+            background: #fff;
+            color: var(--summary-text);
+            border-radius: 999px;
+            font-weight: 700;
+            min-height: 46px;
+            padding-inline: 1.1rem;
+        }
+
+        .btn-dashboard-outline:hover {
+            background: #f4f7fb;
+            color: var(--summary-blue);
+            border-color: #b9c9e4;
+        }
+
         .dashboard-table .amount-col,
         .dashboard-table .count-col {
             text-align: right;
@@ -364,10 +550,10 @@
         }
 
         .summary-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    }
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+        }
 
     .summary-highlight-grid {
         display: grid;
@@ -584,58 +770,283 @@
             </div>
         </div>
 
-        {{-- Dashboard Filters --}}
-        <div class="card shadow-sm border-0 rounded-4 mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4">
-                <h5 class="mb-0 dashboard-card-title">Dashboard Filters</h5>
-            </div>
-            <div class="card-body px-4 pb-4">
-                <form method="GET" action="{{ route('dashboard') }}">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label for="business_unit_id" class="form-label fw-semibold">Business Unit</label>
-                            <select name="business_unit_id" id="business_unit_id" class="form-select rounded-3">
-                                <option value="">All Business Units</option>
-                                @foreach($businessUnits as $businessUnit)
-                                    <option value="{{ $businessUnit->id }}"
-                                        {{ (string) $selectedBusinessUnitId === (string) $businessUnit->id ? 'selected' : '' }}>
-                                        {{ $businessUnit->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+    {{-- Dashboard Filters / Control Center --}}
+@php
+    $selectedBusinessUnitName = $businessUnits
+        ->firstWhere('id', (int) $selectedBusinessUnitId)
+        ?->name ?? 'All Business Units';
 
-                        <div class="col-md-3">
-                            <label for="branch_id" class="form-label fw-semibold">Branch</label>
-                            <select name="branch_id" id="branch_id" class="form-select rounded-3">
-                                <option value="">All Branches</option>
-                                @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}"
-                                        {{ (string) $selectedBranchId === (string) $branch->id ? 'selected' : '' }}>
-                                        {{ $branch->display_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+    $selectedBranchName = $branches
+        ->firstWhere('id', (int) $selectedBranchId)
+        ?->display_name ?? 'All Branches';
 
-                        <div class="col-md-2">
-                            <label for="date_from" class="form-label fw-semibold">Date From</label>
-                            <input type="date" name="date_from" id="date_from" class="form-control rounded-3" value="{{ $dateFrom }}">
-                        </div>
+    $hasActiveFilters = $selectedBusinessUnitId || $selectedBranchId || $dateFrom || $dateTo;
 
-                        <div class="col-md-2">
-                            <label for="date_to" class="form-label fw-semibold">Date To</label>
-                            <input type="date" name="date_to" id="date_to" class="form-control rounded-3" value="{{ $dateTo }}">
-                        </div>
+    $presetToday = now()->toDateString();
+    $presetMonthStart = now()->startOfMonth()->toDateString();
+    $presetMonthEnd = now()->endOfMonth()->toDateString();
+    $presetLastMonthStart = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+    $presetLastMonthEnd = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+    $presetYearStart = now()->startOfYear()->toDateString();
 
-                        <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button type="submit" class="btn btn-dark rounded-pill px-4">Apply</button>
-                            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">Reset</a>
-                        </div>
-                    </div>
-                </form>
+    $hasDashboardData =
+    ((float) $filteredTotalAmount > 0)
+    || ((int) $filteredTransactionCount > 0)
+    || ((float) $filteredCashAmount > 0)
+    || ((int) $filteredBranchCount > 0)
+    || $branchPerformanceSummary->count() > 0
+    || $businessUnitTotals->count() > 0
+    || $latestTransactions->count() > 0;
+
+    $comparisonRangeLabel = null;
+
+    if ($comparisonEnabled && $previousPeriodStart && $previousPeriodEnd) {
+        $comparisonRangeLabel =
+            \Carbon\Carbon::parse($previousPeriodStart)->format('M d, Y')
+            . ' - '
+            . \Carbon\Carbon::parse($previousPeriodEnd)->format('M d, Y');
+    }
+
+    $trendBadge = function ($current, $previous, $percent) {
+        if ((float) $previous === 0.0) {
+            return [
+                'class' => (float) $current > 0 ? 'good' : 'warn',
+                'label' => (float) $current > 0 ? 'New activity' : 'No previous activity',
+            ];
+        }
+
+        return [
+            'class' => $percent >= 0 ? 'good' : 'danger',
+            'label' => ($percent >= 0 ? '↑ ' : '↓ ') . number_format(abs($percent), 1) . '%',
+        ];
+    };
+
+    $amountTrend = $trendBadge($filteredTotalAmount, $previousPeriodAmount, $amountChangePercent);
+    $transactionTrend = $trendBadge($filteredTransactionCount, $previousPeriodTransactionCount, $transactionChangePercent);
+    $cashTrend = $trendBadge($filteredCashAmount, $previousPeriodCashAmount, $cashAmountChangePercent);
+    $branchTrend = $trendBadge($filteredBranchCount, $previousPeriodBranchCount, $branchCountChangePercent);  
+@endphp
+
+<div class="dashboard-control-center mb-4">
+    <div class="dashboard-control-top d-flex flex-column flex-lg-row justify-content-between gap-3">
+        <div>
+            <h5 class="dashboard-control-title">Dashboard Control Center</h5>
+            <p class="dashboard-control-subtitle">
+                Use filters to drive the KPIs, reports, charts, and transaction summaries below.
+            </p>
+        </div>
+
+        <div class="text-lg-end">
+            <div class="small text-white-50 fw-semibold text-uppercase">Current View</div>
+            <div class="fw-bold">
+                {{ $dateFrom ?: 'Start' }} to {{ $dateTo ?: 'Latest' }}
             </div>
         </div>
+    </div>
+
+    <div class="dashboard-control-body">
+        <div class="dashboard-chip-row">
+            <span class="dashboard-filter-chip">
+                Period:
+                {{ $dateFrom ?: 'All Start Dates' }}
+                —
+                {{ $dateTo ?: 'Latest' }}
+            </span>
+
+            <span class="dashboard-filter-chip {{ $selectedBusinessUnitId ? '' : 'muted' }}">
+                Business Unit: {{ $selectedBusinessUnitName }}
+            </span>
+
+            <span class="dashboard-filter-chip {{ $selectedBranchId ? '' : 'muted' }}">
+                Branch: {{ $selectedBranchName }}
+            </span>
+
+            <span class="dashboard-filter-chip {{ $hasActiveFilters ? '' : 'muted' }}">
+                {{ $hasActiveFilters ? 'Filtered View Active' : 'Default Dashboard View' }}
+            </span>
+        </div>
+
+        <form method="GET" action="{{ route('dashboard') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="business_unit_id" class="form-label fw-semibold">Business Unit</label>
+                    <select name="business_unit_id" id="business_unit_id" class="form-select dashboard-filter-control">
+                        <option value="">All Business Units</option>
+                        @foreach($businessUnits as $businessUnit)
+                            <option value="{{ $businessUnit->id }}"
+                                {{ (string) $selectedBusinessUnitId === (string) $businessUnit->id ? 'selected' : '' }}>
+                                {{ $businessUnit->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="branch_id" class="form-label fw-semibold">Branch</label>
+                    <select name="branch_id" id="branch_id" class="form-select dashboard-filter-control">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}"
+                                {{ (string) $selectedBranchId === (string) $branch->id ? 'selected' : '' }}>
+                                {{ $branch->display_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label fw-semibold">Date From</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control dashboard-filter-control" value="{{ $dateFrom }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label fw-semibold">Date To</label>
+                    <input type="date" name="date_to" id="date_to" class="form-control dashboard-filter-control" value="{{ $dateTo }}">
+                </div>
+
+                <div class="col-md-2">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-dashboard-primary w-100">Apply</button>
+                        <a href="{{ route('dashboard') }}" class="btn btn-dashboard-outline w-100">Reset</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="dashboard-preset-row mt-3">
+            <a class="dashboard-preset-btn"
+               href="{{ route('dashboard', ['date_from' => $presetToday, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                Today
+            </a>
+
+            <a class="dashboard-preset-btn"
+               href="{{ route('dashboard', ['date_from' => $presetMonthStart, 'date_to' => $presetMonthEnd, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                This Month
+            </a>
+
+            <a class="dashboard-preset-btn"
+               href="{{ route('dashboard', ['date_from' => $presetLastMonthStart, 'date_to' => $presetLastMonthEnd, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                Last Month
+            </a>
+
+            <a class="dashboard-preset-btn"
+               href="{{ route('dashboard', ['date_from' => $presetYearStart, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                Year to Date
+            </a>
+
+            <a class="dashboard-preset-btn" href="{{ route('dashboard') }}">
+                All Time
+            </a>
+        </div>
+
+        @if(! $hasDashboardData)
+            <div class="dashboard-empty-state mt-3">
+                <div class="dashboard-empty-state-title">
+                    No dashboard activity found for this selected view.
+                </div>
+
+                <p class="dashboard-empty-state-text">
+                    Try selecting <strong>Last Month</strong>, clearing filters, or checking if recent branch files have already been imported.
+                    @if($latestAvailableTransactionDate)
+                        Latest matching transaction date:
+                        <strong>{{ \Carbon\Carbon::parse($latestAvailableTransactionDate)->format('M d, Y') }}</strong>.
+                    @endif
+                </p>
+            </div>
+        @endif
+    </div>
+</div>
+
+    <div id="charts-overview" class="summary-card mb-4">
+        <div class="summary-section-header">
+            <div>
+                <h5 class="mb-1 dashboard-card-title">Filtered Charts Overview</h5>
+                <p class="mb-0">
+                    Visual summary of branch activity, business unit amount, and monthly trends based on selected filters.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-3 p-md-4">
+            <div class="dashboard-chart-grid">
+                <div class="dashboard-chart-box">
+                    <div class="dashboard-chart-title">
+                        Filtered Transactions by Branch
+                    </div>
+
+                    @if(count($branchChartLabels ?? []) > 0)
+                        <div class="dashboard-chart-canvas">
+                            <canvas id="branchTransactionsChart"></canvas>
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-state-title">No branch chart data available.</div>
+                            <p class="dashboard-empty-state-text">
+                                Try changing the date range or clearing the branch/business unit filters.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="dashboard-chart-box">
+                    <div class="dashboard-chart-title">
+                        Filtered Amount by Business Unit
+                    </div>
+
+                    @if(count($businessUnitChartLabels ?? []) > 0)
+                        <div class="dashboard-chart-canvas">
+                            <canvas id="businessUnitAmountChart"></canvas>
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-state-title">No business unit chart data available.</div>
+                            <p class="dashboard-empty-state-text">
+                                Try changing the date range or clearing the branch/business unit filters.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="dashboard-chart-box">
+                    <div class="dashboard-chart-title">
+                        Monthly Transaction Trend
+                    </div>
+
+                    @if(count($transactionsByMonthLabels ?? []) > 0)
+                        <div class="dashboard-chart-canvas">
+                            <canvas id="transactionsByMonthChart"></canvas>
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-state-title">No monthly transaction trend available.</div>
+                            <p class="dashboard-empty-state-text">
+                                Try selecting a wider date range or clearing filters.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="dashboard-chart-box">
+                    <div class="dashboard-chart-title">
+                        Monthly Amount Trend
+                    </div>
+
+                    @if(count($transactionsByMonthLabels ?? []) > 0)
+                        <div class="dashboard-chart-canvas">
+                            <canvas id="amountByMonthChart"></canvas>
+                        </div>
+                    @else
+                        <div class="dashboard-empty-state">
+                            <div class="dashboard-empty-state-title">No monthly amount trend available.</div>
+                            <p class="dashboard-empty-state-text">
+                                Try selecting a wider date range or clearing filters.
+                            </p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
         {{-- TOP SUMMARY CARDS --}}
     <div id="sales-overview" class="summary-kpi-grid mb-4">
@@ -644,11 +1055,19 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">₱</div>
                     <div>
-                        <div class="executive-title">Sales Today</div>
+                        <div class="executive-title">Filtered Total Amount</div>
                     </div>
                 </div>
-                <div class="executive-value">{{ number_format((float) $todayAmount, 2) }}</div>
-                <div class="executive-subtext">Validated from current dashboard totals</div>
+                <div class="executive-value">{{ number_format((float) $filteredTotalAmount, 2) }}</div>
+                <div class="executive-subtext">Total amount based on selected filters</div>
+                @if($comparisonEnabled)
+                    <div class="mt-2">
+                        <span class="summary-chip {{ $amountTrend['class'] }}"
+                            title="Previous period: {{ $comparisonRangeLabel }}">
+                            {{ $amountTrend['label'] }} vs previous period
+                        </span>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -657,12 +1076,20 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">#</div>
                     <div>
-                        <div class="executive-title">Transactions Today</div>
+                        <div class="executive-title">Filtered Transactions</div>
                     </div>
                 </div>
-                <div class="executive-value">{{ $todayTransactionCount }}</div>
-                <div class="executive-subtext">Count of all matching records</div>
-            </div>
+                <div class="executive-value">{{ $filteredTransactionCount }}</div>
+                <div class="executive-subtext">Transaction count based on selected filters</div>
+                @if($comparisonEnabled)
+                    <div class="mt-2">
+                        <span class="summary-chip {{ $transactionTrend['class'] }}"
+                            title="Previous period: {{ $comparisonRangeLabel }}">
+                            {{ $transactionTrend['label'] }} vs previous period
+                        </span>
+                    </div>
+                @endif
+                            </div>
         </div>
 
         <div class="executive-card card-yellow">
@@ -670,24 +1097,40 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">₱</div>
                     <div>
-                        <div class="executive-title">Month-to-Date Sales</div>
+                        <div class="executive-title">Filtered Cash Amount</div>
                     </div>
                 </div>
-                <div class="executive-value">{{ number_format((float) $monthToDateAmount, 2) }}</div>
-                <div class="executive-subtext">Month-to-date summary amount</div>
+                <div class="executive-value">{{ number_format((float) $filteredCashAmount, 2) }}</div>
+                <div class="executive-subtext">Cash amount based on selected filters</div>
+                @if($comparisonEnabled)
+                    <div class="mt-2">
+                        <span class="summary-chip {{ $cashTrend['class'] }}"
+                            title="Previous period: {{ $comparisonRangeLabel }}">
+                            {{ $cashTrend['label'] }} vs previous period
+                        </span>
+                    </div>
+                @endif
             </div>
         </div>
 
         <div class="executive-card card-purple">
             <div class="executive-card-body">
                 <div class="executive-card-top">
-                    <div class="executive-icon">#</div>
+                    <div class="executive-icon">🏬</div>
                     <div>
-                        <div class="executive-title">Month-to-Date Transactions</div>
+                        <div class="executive-title">Branches With Activity</div>
                     </div>
                 </div>
-                <div class="executive-value">{{ $monthToDateTransactionCount }}</div>
-                <div class="executive-subtext">Month-to-date transaction volume</div>
+                <div class="executive-value">{{ $filteredBranchCount }}</div>
+                <div class="executive-subtext">Branches found in the filtered transaction result</div>
+                @if($comparisonEnabled)
+                    <div class="mt-2">
+                        <span class="summary-chip {{ $branchTrend['class'] }}"
+                            title="Previous period: {{ $comparisonRangeLabel }}">
+                            {{ $branchTrend['label'] }} vs previous period
+                        </span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -698,20 +1141,27 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">🏆</div>
                     <div>
-                        <div class="executive-title">Top Branch This Month</div>
+                        <div class="executive-title">Top Branch in Filtered Result</div>
                     </div>
                 </div>
 
-                @if($topBranchThisMonth)
+                @if($topFilteredBranch)
                     <div class="executive-value" style="font-size: 1.45rem;">
-                        {{ $topBranchThisMonth->branch_name }}
+                        {{ $topFilteredBranch->branch_name }}
                     </div>
-                    <div class="executive-code">{{ $topBranchThisMonth->branch_code }}</div>
+
+                    <div class="executive-code">
+                        {{ $topFilteredBranch->branch_code }}
+                        · {{ $topFilteredBranch->transaction_count }} transaction(s)
+                    </div>
+
                     <div class="executive-small-value">
-                        {{ number_format((float) $topBranchThisMonth->month_to_date_amount, 2) }}
+                        {{ number_format((float) $topFilteredBranch->filtered_total_amount, 2) }}
                     </div>
                 @else
-                    <div class="executive-subtext">No branch data found.</div>
+                    <div class="executive-subtext">
+                        No branch activity found for the selected filters.
+                    </div>
                 @endif
             </div>
         </div>
@@ -721,20 +1171,27 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">🏢</div>
                     <div>
-                        <div class="executive-title">Top Business Unit This Month</div>
+                        <div class="executive-title">Top Business Unit in Filtered Result</div>
                     </div>
                 </div>
 
-                @if($topBusinessUnitThisMonth)
+                @if($topFilteredBusinessUnit)
                     <div class="executive-value" style="font-size: 1.45rem;">
-                        {{ $topBusinessUnitThisMonth->name }}
+                        {{ $topFilteredBusinessUnit->name }}
                     </div>
-                    <div class="executive-code">{{ $topBusinessUnitThisMonth->code }}</div>
+
+                    <div class="executive-code">
+                        {{ $topFilteredBusinessUnit->code }}
+                        · {{ $topFilteredBusinessUnit->transaction_count }} transaction(s)
+                    </div>
+
                     <div class="executive-small-value">
-                        {{ number_format((float) $topBusinessUnitThisMonth->total_amount, 2) }}
+                        {{ number_format((float) $topFilteredBusinessUnit->filtered_total_amount, 2) }}
                     </div>
                 @else
-                    <div class="executive-subtext">No business unit data found.</div>
+                    <div class="executive-subtext">
+                        No business unit activity found for the selected filters.
+                    </div>
                 @endif
             </div>
         </div>
@@ -744,21 +1201,533 @@
                 <div class="executive-card-top">
                     <div class="executive-icon">🏬</div>
                     <div>
-                        <div class="executive-title">Active Branches</div>
+                        <div class="executive-title">Branches With Activity</div>
                     </div>
                 </div>
 
-                <div class="executive-value">{{ $activeBranches }}</div>
-                <div class="executive-subtext">Currently active branches</div>
+                <div class="executive-value">{{ $activeFilteredBranches }}</div>
+                <div class="executive-subtext">
+                    Branches found in the current filtered transaction result
+                </div>
             </div>
         </div>
     </div>
+
+            <div id="product-sales-intelligence" class="summary-card mb-4">
+    <div class="summary-section-header">
+        <div>
+            <h5 class="mb-1 dashboard-card-title">Product & Sales Intelligence</h5>
+            <p class="mb-0">
+                Brand, product, and term insights based on the selected dashboard filters.
+            </p>
+        </div>
+    </div>
+
+    <div class="p-3 p-md-4">
+        <div class="summary-highlight-grid mb-4">
+            <div class="executive-card card-navy">
+                <div class="executive-card-body">
+                    <div class="executive-card-top">
+                        <div class="executive-icon">🏷️</div>
+                        <div>
+                            <div class="executive-title">Top Selling Brand</div>
+                        </div>
+                    </div>
+
+                    @if($topBrandInsight)
+                        <div class="executive-value" style="font-size: 1.45rem;">
+                            {{ $topBrandInsight->brand_name }}
+                        </div>
+                        <div class="executive-code">
+                            {{ $topBrandInsight->transaction_count }} transaction(s)
+                        </div>
+                        <div class="executive-small-value">
+                            {{ number_format((float) $topBrandInsight->total_amount, 2) }}
+                        </div>
+                    @else
+                        <div class="executive-subtext">
+                            No brand data found for the selected filters.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="executive-card card-teal">
+                <div class="executive-card-body">
+                    <div class="executive-card-top">
+                        <div class="executive-icon">🔥</div>
+                        <div>
+                            <div class="executive-title">Hot Product</div>
+                        </div>
+                    </div>
+
+                    @if($hotProductInsight)
+                        <div class="executive-value" style="font-size: 1.25rem;">
+                            {{ $hotProductInsight->product_name }}
+                        </div>
+                        <div class="executive-code">
+                            {{ $hotProductInsight->transaction_count }} transaction(s)
+                        </div>
+                        <div class="executive-small-value">
+                            {{ number_format((float) $hotProductInsight->total_amount, 2) }}
+                        </div>
+                    @else
+                        <div class="executive-subtext">
+                            No product data found for the selected filters.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="executive-card card-cyan">
+                <div class="executive-card-body">
+                    <div class="executive-card-top">
+                        <div class="executive-icon">%</div>
+                        <div>
+                            <div class="executive-title">Highest Term Share</div>
+                        </div>
+                    </div>
+
+                    @if($highestTermInsight)
+                        <div class="executive-value" style="font-size: 1.45rem;">
+                            {{ $highestTermInsight->terms }}
+                        </div>
+                        <div class="executive-code">
+                            {{ $highestTermInsight->transaction_count }} transaction(s)
+                        </div>
+                        <div class="executive-small-value">
+                            {{ number_format((float) $highestTermInsight->percentage, 2) }}%
+                        </div>
+                    @else
+                        <div class="executive-subtext">
+                            No term data found for the selected filters.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table report-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Brand</th>
+                                <th class="count-col">Transactions</th>
+                                <th class="amount-col">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($topBrands as $brand)
+                                <tr>
+                                    <td class="fw-semibold">{{ $brand->brand_name }}</td>
+                                    <td class="count-col">{{ $brand->transaction_count }}</td>
+                                    <td class="amount-col fw-semibold">
+                                        {{ number_format((float) $brand->total_amount, 2) }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No brand sales data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table report-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Product / Model</th>
+                                <th class="count-col">Transactions</th>
+                                <th class="amount-col">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($hotProducts as $product)
+                                <tr>
+                                    <td class="fw-semibold">{{ $product->product_name }}</td>
+                                    <td class="count-col">{{ $product->transaction_count }}</td>
+                                    <td class="amount-col fw-semibold">
+                                        {{ number_format((float) $product->total_amount, 2) }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No product sales data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table report-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Product Line</th>
+                                <th class="count-col">Transactions</th>
+                                <th class="amount-col">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($topProductLines as $line)
+                                <tr>
+                                    <td class="fw-semibold">{{ $line->product_line }}</td>
+                                    <td class="count-col">{{ $line->transaction_count }}</td>
+                                    <td class="amount-col fw-semibold">
+                                        {{ number_format((float) $line->total_amount, 2) }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No product line data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table report-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Term</th>
+                                <th class="count-col">Transactions</th>
+                                <th class="amount-col">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($topTerms as $term)
+                                <tr>
+                                    <td class="fw-semibold">{{ $term->terms }}</td>
+                                    <td class="count-col">{{ $term->transaction_count }}</td>
+                                    <td class="amount-col fw-semibold">
+                                        {{ number_format((float) $term->percentage, 2) }}%
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No term data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        <div id="customer-intelligence" class="summary-card mb-4">
+            <div class="summary-section-header">
+                <div>
+                    <h5 class="mb-1 dashboard-card-title">Customer Intelligence</h5>
+                    <p class="mb-0">
+                        Repeat buyers and highest PN customers based on real paid sales only.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-3 p-md-4">
+                <div class="summary-highlight-grid mb-4">
+                    <div class="executive-card card-navy">
+                        <div class="executive-card-body">
+                            <div class="executive-card-top">
+                                <div class="executive-icon">👤</div>
+                                <div>
+                                    <div class="executive-title">Top Repeat Buyer</div>
+                                </div>
+                            </div>
+
+                            @if($topRepeatCustomerInsight)
+                                <div class="executive-value" style="font-size: 1.25rem;">
+                                    <a href="{{ route('sales-transactions.show', $topRepeatCustomerInsight->latest_sales_transaction_id) }}"
+                                    class="text-decoration-none text-dark">
+                                        {{ $topRepeatCustomerInsight->customer_name }}
+                                    </a>
+                                </div>
+
+                                <div class="executive-code">
+                                    {{ $topRepeatCustomerInsight->account_count }} account(s)
+                                    · {{ $topRepeatCustomerInsight->transaction_count }} transaction(s)
+                                </div>
+
+                                <div class="executive-small-value">
+                                    {{ number_format((float) $topRepeatCustomerInsight->total_sales_amount, 2) }}
+                                </div>
+                            @else
+                                <div class="executive-subtext">
+                                    No repeat buyer found for the selected filters.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="executive-card card-teal">
+                        <div class="executive-card-body">
+                            <div class="executive-card-top">
+                                <div class="executive-icon">₱</div>
+                                <div>
+                                    <div class="executive-title">Highest PN Customer</div>
+                                </div>
+                            </div>
+
+                            @if($topPnCustomerInsight)
+                                <div class="executive-value" style="font-size: 1.25rem;">
+                                    <a href="{{ route('sales-transactions.show', $topPnCustomerInsight->sales_transaction_id) }}"
+                                    class="text-decoration-none text-dark">
+                                        {{ $topPnCustomerInsight->customer_name }}
+                                    </a>
+                                </div>
+
+                                <div class="executive-code">
+                                    {{ $topPnCustomerInsight->account_number ?? '-' }}
+                                    · {{ $topPnCustomerInsight->receipt_number ?? '-' }}
+                                </div>
+
+                                <div class="executive-small-value">
+                                    {{ number_format((float) $topPnCustomerInsight->total_pn_amount, 2) }}
+                                </div>
+                            @else
+                                <div class="executive-subtext">
+                                    No PN customer data found for the selected filters.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="executive-card card-cyan">
+                        <div class="executive-card-body">
+                            <div class="executive-card-top">
+                                <div class="executive-icon">↻</div>
+                                <div>
+                                    <div class="executive-title">Repeat Buyer Count</div>
+                                </div>
+                            </div>
+
+                            <div class="executive-value">{{ $topRepeatCustomers->count() }}</div>
+                            <div class="executive-subtext">
+                                Customers with more than one paid purchase in the selected filters
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="table-responsive">
+                            <table class="table report-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Repeat Buyer</th>
+                                        <th class="count-col">Accounts</th>
+                                        <th class="count-col">Transactions</th>
+                                        <th class="amount-col">Total Sales</th>
+                                        <th>Latest Purchase</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($topRepeatCustomers as $customer)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    <a href="{{ route('sales-transactions.show', $customer->latest_sales_transaction_id) }}"
+                                                    class="text-decoration-none">
+                                                        {{ $customer->customer_name }}
+                                                    </a>
+                                                </div>
+                                                <div class="small text-muted">{{ $customer->contact_number ?? '-' }}</div>
+                                            </td>
+
+                                            <td class="count-col">{{ $customer->account_count }}</td>
+                                            <td class="count-col">{{ $customer->transaction_count }}</td>
+
+                                            <td class="amount-col fw-semibold">
+                                                {{ number_format((float) $customer->total_sales_amount, 2) }}
+                                            </td>
+
+                                            <td>
+                                                {{ $customer->latest_purchase_date ? \Carbon\Carbon::parse($customer->latest_purchase_date)->format('M d, Y') : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No repeat buyer data found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try selecting a wider date range or clearing filters.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="table-responsive">
+                            <table class="table report-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Highest PN Customer</th>
+                                        <th>Account</th>
+                                        <th>Product</th>
+                                        <th class="amount-col">Total PN</th>
+                                        <th>Latest Purchase</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($topPnCustomers as $customer)
+                                        <tr>
+                                            <td class="fw-semibold">
+                                                <a href="{{ route('sales-transactions.show', $customer->sales_transaction_id) }}"
+                                                class="text-decoration-none">
+                                                    {{ $customer->customer_name }}
+                                                </a>
+                                            </td>
+
+                                            <td>{{ $customer->account_number ?? '-' }}</td>
+
+                                            <td>
+                                                {{ $customer->brand_name ?? '-' }}
+                                                {{ $customer->model ? '· ' . $customer->model : '' }}
+                                            </td>
+
+                                            <td class="amount-col fw-semibold">
+                                                {{ number_format((float) $customer->total_pn_amount, 2) }}
+                                            </td>
+
+                                            <td>
+                                                {{ $customer->latest_purchase_date ? \Carbon\Carbon::parse($customer->latest_purchase_date)->format('M d, Y') : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No PN ranking data found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try changing the date range, branch, or business unit filter.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            <table class="table report-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Latest Repeat Buyer Activity</th>
+                                        <th class="count-col">Accounts</th>
+                                        <th class="count-col">Transactions</th>
+                                        <th>Latest Purchase</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($latestRepeatCustomers as $customer)
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    <a href="{{ route('sales-transactions.show', $customer->latest_sales_transaction_id) }}"
+                                                    class="text-decoration-none">
+                                                        {{ $customer->customer_name }}
+                                                    </a>
+                                                </div>
+                                                <div class="small text-muted">{{ $customer->contact_number ?? '-' }}</div>
+                                            </td>
+
+                                            <td class="count-col">{{ $customer->account_count }}</td>
+                                            <td class="count-col">{{ $customer->transaction_count }}</td>
+
+                                            <td>
+                                                {{ $customer->latest_purchase_date ? \Carbon\Carbon::parse($customer->latest_purchase_date)->format('M d, Y') : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No latest repeat buyer activity found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try selecting a wider date range or clearing filters.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
             <div id="appliance-cash" class="summary-card mb-4">
                 <div class="summary-section-header">
                     <div>
                         <h5 class="mb-1 dashboard-card-title">Appliance Cash Transactions</h5>
-                        <p class="text-muted small mb-0">
-                            Lucky 4 appliance cash sales summary by branch.
+                        <p class="mb-0">
+                            Lucky 4 Appliances cash sales summary by branch.
                         </p>
                     </div>
                 </div>
@@ -811,8 +1780,15 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="11" class="text-center py-4 text-muted">
-                                            No appliance cash transaction data found.
+                                        <td colspan="11" class="p-3">
+                                            <div class="dashboard-empty-state text-center">
+                                                <div class="dashboard-empty-state-title">
+                                                    No appliance cash transaction data found.
+                                                </div>
+                                                <p class="dashboard-empty-state-text">
+                                                    Try changing the date range, branch, or business unit filter.
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -842,7 +1818,7 @@
                     <div class="summary-section-header">
                         <div>
                             <h5 class="mb-1 dashboard-card-title">Motorcycle Cash Transactions</h5>
-                            <p class="text-muted small mb-0">
+                            <p class="mb-0">
                                 Lucky 4 and Motor 8 motorcycle cash sales summary by branch.
                             </p>
                         </div>
@@ -894,8 +1870,15 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11" class="text-center py-4 text-muted">
-                                                No motorcycle cash transaction data found.
+                                            <td colspan="11" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No motorcycle cash transaction data found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try changing the date range, branch, or business unit filter.
+                                                    </p>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -925,8 +1908,8 @@
                     <div class="summary-section-header">
                         <div>
                             <h5 class="mb-1 dashboard-card-title">Combined Motorcycle and Appliances Cash Transactions</h5>
-                            <p class="text-muted small mb-0">
-                                Lucky 4 and Motor 8 combined cash sales summary by branch.
+                            <p class="mb-0">
+                                Lucky 4 and Motor 8 motorcycle combined with appliances cash sales summary by branch.
                             </p>
                         </div>
                     </div>
@@ -979,8 +1962,15 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11" class="text-center py-4 text-muted">
-                                                No combined cash transaction data found.
+                                            <td colspan="11" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No combined cash transaction data found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try changing the date range, branch, or business unit filter.
+                                                    </p>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -1011,7 +2001,7 @@
             <div class="summary-section-header">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Appliance Installment Transactions</h5>
-                    <p class="text-muted small mb-0">
+                    <p class="mb-0">
                         Lucky 4 appliance installment sales summary by branch.
                     </p>
                 </div>
@@ -1065,8 +2055,15 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="11" class="text-center py-4 text-muted">
-                                        No appliance installment transaction data found.
+                                    <td colspan="11" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No appliance installment sales transaction data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -1097,7 +2094,7 @@
             <div class="summary-section-header">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Motorcycle Installment Transactions</h5>
-                    <p class="text-muted small mb-0">
+                    <p class="mb-0">
                         Lucky 4 and Motor 8 motorcycle installment sales summary by branch.
                     </p>
                 </div>
@@ -1151,8 +2148,15 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="11" class="text-center py-4 text-muted">
-                                        No motorcycle installment transaction data found.
+                                    <td colspan="11" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No motorcycle installment transaction data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -1183,8 +2187,8 @@
             <div class="summary-section-header">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Combined Motorcycle and Appliances Installment Transactions</h5>
-                    <p class="text-muted small mb-0">
-                        Lucky 4 and Motor 8 combined installment summary by branch.
+                    <p class="mb-0">
+                        Lucky 4 and Motor 8 combined installment sales summary by branch.
                     </p>
                 </div>
             </div>
@@ -1236,8 +2240,15 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="11" class="text-center py-4 text-muted">
-                                        No combined installment data found.
+                                    <td colspan="11" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No combined installment sales transaction data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -1269,7 +2280,9 @@
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                     <div>
                         <h5 class="mb-1 dashboard-card-title">Branch Performance Summary</h5>
-                        <p class="text-muted small mb-0">Today and month-to-date sales performance by branch.</p>
+                        <p class="text-muted small mb-0">
+                            Current-day and period sales performance by branch under the selected filters.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1302,12 +2315,19 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
-                                        No branch performance data found.
+                                    <td colspan="6" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No sales performance transaction data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
-                        </tbody>
+                         </tbody>
                     </table>
                 </div>
             </div>
@@ -1340,10 +2360,17 @@
                                     <td class="count-col">{{ $unit->transaction_count }}</td>
                                     <td class="amount-col fw-semibold">{{ number_format((float) $unit->total_amount, 2) }}</td>
                                 </tr>
-                            @empty
+                           @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        No business unit totals found.
+                                    <td colspan="5" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No business unit totals data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -1388,8 +2415,15 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center py-4 text-muted">
-                                                No transactions found.
+                                            <td colspan="4" class="p-3">
+                                                <div class="dashboard-empty-state text-center">
+                                                    <div class="dashboard-empty-state-title">
+                                                        No latest sales transaction data found.
+                                                    </div>
+                                                    <p class="dashboard-empty-state-text">
+                                                        Try changing the date range, branch, or business unit filter.
+                                                    </p>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -1424,61 +2458,20 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted">
-                                        No branch totals found.
+                                    <td colspan="3" class="p-3">
+                                        <div class="dashboard-empty-state text-center">
+                                            <div class="dashboard-empty-state-title">
+                                                No branch transaction total data found.
+                                            </div>
+                                            <p class="dashboard-empty-state-text">
+                                                Try changing the date range, branch, or business unit filter.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="charts-branch-business-unit" class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h5 class="mb-0 dashboard-card-title">Transactions by Branch</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <canvas id="branchTransactionsChart" height="120"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h5 class="mb-0 dashboard-card-title">Amount by Business Unit</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <canvas id="businessUnitAmountChart" height="120"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="charts-monthly" class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h5 class="mb-0 dashboard-card-title">Transactions by Month</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <canvas id="transactionsByMonthChart" height="120"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h5 class="mb-0 dashboard-card-title">Amount by Month</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <canvas id="amountByMonthChart" height="120"></canvas>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1519,8 +2512,15 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">
-                                            No import batches found.
+                                        <td colspan="4" class="p-3">
+                                            <div class="dashboard-empty-state text-center">
+                                                <div class="dashboard-empty-state-title">
+                                                    No latest import batches data found.
+                                                </div>
+                                                <p class="dashboard-empty-state-text">
+                                                    No import batches have been uploaded yet.
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -1536,7 +2536,7 @@
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 rounded-4 h-100">
                         <div class="card-body p-4">
-                            <div class="text-muted small mb-2">Filtered Business Units</div>
+                            <div class="text-muted small mb-2">Business Units</div>
                             <div class="fs-2 fw-bold">{{ $businessUnits->count() }}</div>
                         </div>
                     </div>
@@ -1599,14 +2599,15 @@
                 <a href="#combined-installment">Combined Installment</a>
 
                 <div class="report-menu-group">Summary Sections</div>
+               <a href="#charts-overview">Charts Overview</a>
                 <a href="#sales-overview">Sales Overview</a>
                 <a href="#top-summary">Top Summary</a>
+                <a href="#product-sales-intelligence">Product & Sales Intelligence</a>
+                <a href="#customer-intelligence">Customer Intelligence</a>
                 <a href="#branch-performance">Branch Performance</a>
                 <a href="#business-unit-totals">Business Unit Totals</a>
                 <a href="#latest-sales-transactions">Latest Sales Transactions</a>
                 <a href="#branch-transaction-totals">Branch Transaction Totals</a>
-                <a href="#charts-branch-business-unit">Branch & BU Charts</a>
-                <a href="#charts-monthly">Monthly Charts</a>
                 
 
                 @if(auth()->user()->hasAnyRole(['importer', 'admin', 'super_admin']))
@@ -1628,129 +2629,115 @@
         </button>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const branchLabels = @json($branchChartLabels);
-        const branchCounts = @json($branchChartCounts);
 
-        const businessUnitLabels = @json($businessUnitChartLabels);
-        const businessUnitAmounts = @json($businessUnitChartAmounts);
+        <script>
+            const branchLabels = @json($branchChartLabels);
+            const branchCounts = @json($branchChartCounts);
 
-        const transactionsByMonthLabels = @json($transactionsByMonthLabels);
-        const transactionsByMonthCounts = @json($transactionsByMonthCounts);
-        const transactionsByMonthAmounts = @json($transactionsByMonthAmounts);
+            const businessUnitLabels = @json($businessUnitChartLabels);
+            const businessUnitAmounts = @json($businessUnitChartAmounts);
 
-        const branchTransactionsCtx = document.getElementById('branchTransactionsChart');
-        if (branchTransactionsCtx) {
-            new Chart(branchTransactionsCtx, {
-                type: 'bar',
-                data: {
-                    labels: branchLabels,
-                    datasets: [{
-                        label: 'Transactions',
-                        data: branchCounts,
-                        borderWidth: 1,
-                        borderRadius: 8
-                    }]
+            const transactionsByMonthLabels = @json($transactionsByMonthLabels);
+            const transactionsByMonthCounts = @json($transactionsByMonthCounts);
+            const transactionsByMonthAmounts = @json($transactionsByMonthAmounts);
+
+            const defaultChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            };
+
+            const pieChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            };
+
+            const branchTransactionsCtx = document.getElementById('branchTransactionsChart');
+
+            if (branchTransactionsCtx) {
+                new Chart(branchTransactionsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: branchLabels,
+                        datasets: [{
+                            label: 'Transactions',
+                            data: branchCounts,
+                            borderWidth: 1,
+                            borderRadius: 8
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
+                    options: defaultChartOptions
+                });
+            }
 
-        const businessUnitAmountCtx = document.getElementById('businessUnitAmountChart');
-        if (businessUnitAmountCtx) {
-            new Chart(businessUnitAmountCtx, {
-                type: 'pie',
-                data: {
-                    labels: businessUnitLabels,
-                    datasets: [{
-                        label: 'Total Amount',
-                        data: businessUnitAmounts,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
+            const businessUnitAmountCtx = document.getElementById('businessUnitAmountChart');
 
-        const transactionsByMonthCtx = document.getElementById('transactionsByMonthChart');
-        if (transactionsByMonthCtx) {
-            new Chart(transactionsByMonthCtx, {
-                type: 'line',
-                data: {
-                    labels: transactionsByMonthLabels,
-                    datasets: [{
-                        label: 'Transactions',
-                        data: transactionsByMonthCounts,
-                        borderWidth: 2,
-                        tension: 0.25,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
+            if (businessUnitAmountCtx) {
+                new Chart(businessUnitAmountCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: businessUnitLabels,
+                        datasets: [{
+                            label: 'Total Amount',
+                            data: businessUnitAmounts,
+                            borderWidth: 1
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
+                    options: pieChartOptions
+                });
+            }
 
-        const amountByMonthCtx = document.getElementById('amountByMonthChart');
-        if (amountByMonthCtx) {
-            new Chart(amountByMonthCtx, {
-                type: 'line',
-                data: {
-                    labels: transactionsByMonthLabels,
-                    datasets: [{
-                        label: 'Total Amount',
-                        data: transactionsByMonthAmounts,
-                        borderWidth: 2,
-                        tension: 0.25,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
+            const transactionsByMonthCtx = document.getElementById('transactionsByMonthChart');
+
+            if (transactionsByMonthCtx) {
+                new Chart(transactionsByMonthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: transactionsByMonthLabels,
+                        datasets: [{
+                            label: 'Transactions',
+                            data: transactionsByMonthCounts,
+                            borderWidth: 2,
+                            tension: 0.25,
+                            fill: false
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
+                    options: defaultChartOptions
+                });
+            }
 
+            const amountByMonthCtx = document.getElementById('amountByMonthChart');
+
+            if (amountByMonthCtx) {
+                new Chart(amountByMonthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: transactionsByMonthLabels,
+                        datasets: [{
+                            label: 'Total Amount',
+                            data: transactionsByMonthAmounts,
+                            borderWidth: 2,
+                            tension: 0.25,
+                            fill: false
+                        }]
+                    },
+                    options: defaultChartOptions
+                });
+            }
 
             const reportMenuToggle = document.getElementById('reportMenuToggle');
             const reportMenu = document.getElementById('reportMenu');
@@ -1775,6 +2762,5 @@
                     });
                 });
             }
-
-    </script>
+        </script>
 </x-app-layout>

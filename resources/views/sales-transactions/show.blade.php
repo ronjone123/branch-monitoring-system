@@ -458,6 +458,16 @@
                                     </div>
 
                                     <div class="detail-item">
+                                        <div class="detail-label">Capacity</div>
+                                        <div class="detail-value">{{ $salesTransaction->capacity ?? '-' }}</div>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-label">Description</div>
+                                        <div class="detail-value">{{ $salesTransaction->product_description ?? '-' }}</div>
+                                    </div>
+
+                                    <div class="detail-item">
                                         <div class="detail-label">Serial Number</div>
                                         <div class="detail-value">{{ $salesTransaction->serial_number ?? '-' }}</div>
                                     </div>
@@ -470,6 +480,11 @@
                                     <div class="detail-item">
                                         <div class="detail-label">Chassis Number</div>
                                         <div class="detail-value">{{ $salesTransaction->chassis_number ?? '-' }}</div>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <div class="detail-label">Color</div>
+                                        <div class="detail-value">{{ $salesTransaction->color ?? '-' }}</div>
                                     </div>
 
                                     <div class="detail-item">

@@ -303,6 +303,32 @@
         $resolvedCount = $conflicts->getCollection()->where('status', 'resolved')->count();
     @endphp
 
+    @php
+        $conflictTypeLabel = function ($type) {
+            return match ($type) {
+                'data_quality_conflict' => 'Data Quality',
+                'strict_identity_conflict' => 'Changed Row',
+                'completeness_conflict' => 'More Complete Incoming',
+                'related_account_conflict' => 'Related Account',
+                'ambiguous_account_conflict' => 'Ambiguous Account',
+                'missing_from_latest_import' => 'Missing in Latest Import',
+                default => 'Changed Row',
+            };
+        };
+
+        $conflictTypeClass = function ($type) {
+            return match ($type) {
+                'data_quality_conflict' => 'danger',
+                'strict_identity_conflict' => 'warning',
+                'completeness_conflict' => 'info',
+                'related_account_conflict' => 'success',
+                'ambiguous_account_conflict' => 'secondary',
+                'missing_from_latest_import' => 'dark',
+                default => 'warning',
+            };
+        };
+    @endphp
+
     <div class="summary-shell page-with-fixed-nav px-3 px-md-4 py-4">
         @if(session('success'))
             <div class="alert alert-success rounded-4 shadow-sm border-0">
@@ -452,6 +478,7 @@
                                 <th style="width: 180px;">Branch</th>
                                 <th style="width: 110px;">Source Row</th>
                                 <th style="width: 140px;">Status</th>
+                                <th style="width: 190px;">Conflict Type</th>
                                 <th>Notes</th>
                                 <th class="text-end" style="width: 120px;">Action</th>
                             </tr>
@@ -469,6 +496,13 @@
                                             {{ ucfirst($conflict->status) }}
                                         </span>
                                     </td>
+
+                                    <td>
+                                        <span class="soft-badge {{ $conflictTypeClass($conflict->conflict_type) }}">
+                                            {{ $conflictTypeLabel($conflict->conflict_type) }}
+                                        </span>
+                                    </td>
+
                                     <td class="truncate-cell" title="{{ $conflict->notes ?? '-' }}">
                                         {{ $conflict->notes ?? '-' }}
                                     </td>
@@ -481,7 +515,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="p-0">
+                                    <td colspan="9" class="p-0">
                                         <div class="empty-state">
                                             <div class="empty-state-title">No import conflicts found</div>
                                             <div>No conflict records matched the current filters.</div>

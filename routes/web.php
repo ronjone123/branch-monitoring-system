@@ -6,6 +6,7 @@ use App\Http\Controllers\BusinessUnitController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportBatchController;
+use App\Http\Controllers\ImportConflictController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ProductLineController;
 use App\Http\Controllers\ProfileController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\SalesTransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ImportConflictController;
 
 Route::get('/', function () {
     return Auth::check()
@@ -22,27 +22,60 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    | All valid system roles can access the dashboard.
+    */
     Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:super_admin,admin,importer,viewer')
         ->name('dashboard');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile
+    |--------------------------------------------------------------------------
+    | Any authenticated and verified user can manage their own profile.
+    */
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
+
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
-    Route::middleware(['role:super_admin,admin'])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Master Data
+    |--------------------------------------------------------------------------
+    | Super Admin only.
+    */
+    Route::middleware(['role:super_admin'])->group(function () {
         Route::resource('branches', BranchController::class);
         Route::resource('business-units', BusinessUnitController::class)->except(['destroy']);
         Route::resource('locations', LocationController::class)->except(['destroy']);
         Route::resource('product-lines', ProductLineController::class)->except(['destroy']);
         Route::resource('categories', CategoryController::class)->except(['destroy']);
         Route::resource('brands', BrandController::class)->except(['destroy']);
+        Route::resource('users', UserController::class)->except(['destroy']);
     });
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Import Batches
+    |--------------------------------------------------------------------------
+    | Super Admin, Admin, and Importer can access imports.
+    */
     Route::middleware(['role:super_admin,admin,importer'])->group(function () {
-        Route::resource('import-batches', ImportBatchController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('import-batches', ImportBatchController::class)
+            ->only(['index', 'create', 'store', 'show']);
 
         Route::get(
             'import-batches/{import_batch}/sheets/{sheet}/preview',
@@ -63,7 +96,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'import-batch-sheets/{import_batch_sheet}/reset',
             [ImportBatchController::class, 'resetSheet']
         )->name('import-batch-sheets.reset');
+    });
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Import Conflicts
+    |--------------------------------------------------------------------------
+    | Super Admin and Admin only.
+    */
+    Route::middleware(['role:super_admin,admin'])->group(function () {
         Route::get('/import-conflicts', [ImportConflictController::class, 'index'])
             ->name('import-conflicts.index');
 
@@ -84,23 +126,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::delete('/import-conflicts/{importConflict}', [ImportConflictController::class, 'destroy'])
             ->name('import-conflicts.destroy');
-
-        
     });
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sales Transactions
+    |--------------------------------------------------------------------------
+    | All valid system roles can view sales transactions.
+    */
     Route::middleware(['role:super_admin,admin,importer,viewer'])->group(function () {
         Route::get('/sales-transactions', [SalesTransactionController::class, 'index'])
             ->name('sales-transactions.index');
-
-        Route::get('/sales-transactions/export', [SalesTransactionController::class, 'export'])
-            ->name('sales-transactions.export');
-
-        Route::get('/sales-transactions/{salesTransaction}', [SalesTransactionController::class, 'show'])
-            ->name('sales-transactions.show');
     });
 
-    Route::middleware(['role:super_admin'])->group(function () {
-        Route::resource('users', UserController::class)->except(['destroy']);
+    Route::middleware(['role:super_admin,admin,importer'])->group(function () {
+        Route::get('/sales-transactions/export', [SalesTransactionController::class, 'export'])
+            ->name('sales-transactions.export');
+    });
+
+    Route::middleware(['role:super_admin,admin,importer,viewer'])->group(function () {
+        Route::get('/sales-transactions/{salesTransaction}', [SalesTransactionController::class, 'show'])
+            ->name('sales-transactions.show');
     });
 });
 

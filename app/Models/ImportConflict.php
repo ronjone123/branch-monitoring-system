@@ -19,6 +19,7 @@ class ImportConflict extends Model
         'incoming_row_data',
         'status',
         'notes',
+        'conflict_type',
     ];
 
     protected $casts = [

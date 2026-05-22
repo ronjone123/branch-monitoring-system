@@ -9,13 +9,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Throwable;
 
 class ParseImportBatchSheets implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 1200; // 20 minutes
-    public int $tries = 1;
+    public int $tries = 3;
+    public int $backoff = 10;
 
     public function __construct(public int $importBatchId)
     {
@@ -26,43 +28,94 @@ class ParseImportBatchSheets implements ShouldQueue
         set_time_limit(0);
         ini_set('memory_limit', '512M');
 
-        $importBatch = ImportBatch::with('sheets')->findOrFail($this->importBatchId);
+        $importBatch = ImportBatch::query()
+            ->with('sheets')
+            ->findOrFail($this->importBatchId);
 
         $importBatch->update([
             'status' => 'processing',
         ]);
 
-        $parsedSheets = 0;
-        $totalImportedRows = 0;
+        $transactionSheets = $importBatch->sheets()
+            ->where('sheet_type', 'transaction')
+            ->whereIn('status', ['pending', 'queued', 'failed'])
+            ->get();
 
-        $transactionSheets = $importBatch->sheets
-            ->where('sheet_type', 'transaction');
+        if ($transactionSheets->isEmpty()) {
+            $this->recalculateBatchTotals($importBatch);
 
-        foreach ($transactionSheets as $sheet) {
-            if ($sheet->status === 'imported' && (int) $sheet->imported_rows > 0) {
-                continue;
-            }
-
-            $imported = (int) $parser->parse($importBatch, $sheet);
-
-            $totalImportedRows += $imported;
-            $parsedSheets++;
+            return;
         }
 
+        foreach ($transactionSheets as $sheet) {
+            try {
+                $parser->parse($importBatch, $sheet);
+            } catch (Throwable $exception) {
+                $sheet->update([
+                    'status' => 'failed',
+                    'notes' => 'Sheet parse failed: ' . $exception->getMessage(),
+                ]);
+
+                report($exception);
+
+                continue;
+            }
+        }
+
+        $this->recalculateBatchTotals($importBatch);
+    }
+
+    protected function recalculateBatchTotals(ImportBatch $importBatch): void
+    {
         $importBatch->refresh();
 
+        $validRows = $importBatch->sheets()->sum('valid_rows');
+        $invalidRows = $importBatch->sheets()->sum('invalid_rows');
+        $duplicateRows = $importBatch->sheets()->sum('duplicate_rows');
+        $conflictRows = $importBatch->sheets()->sum('conflict_rows');
+        $importedRows = $importBatch->sheets()->sum('imported_rows');
+        $skippedRows = $importBatch->sheets()->sum('skipped_rows');
+
+        $hasFailedSheets = $importBatch->sheets()
+            ->where('sheet_type', 'transaction')
+            ->where('status', 'failed')
+            ->exists();
+
+        $hasPendingSheets = $importBatch->sheets()
+            ->where('sheet_type', 'transaction')
+            ->whereIn('status', ['pending', 'queued', 'processing'])
+            ->exists();
+
+        $hasImportedSheets = $importBatch->sheets()
+            ->where('sheet_type', 'transaction')
+            ->where('status', 'imported')
+            ->exists();
+
+        $status = 'imported';
+
+        if ($hasPendingSheets) {
+            $status = 'processing';
+        } elseif ($hasFailedSheets && ! $hasImportedSheets) {
+            $status = 'failed';
+        } elseif ($hasFailedSheets && $hasImportedSheets) {
+            $status = 'imported';
+        }
+
         $importBatch->update([
-            'valid_rows'     => $importBatch->sheets()->sum('valid_rows'),
-            'invalid_rows'   => $importBatch->sheets()->sum('invalid_rows'),
-            'duplicate_rows' => $importBatch->sheets()->sum('duplicate_rows'),
-            'conflict_rows'  => $importBatch->sheets()->sum('conflict_rows'),
-            'imported_rows'  => $importBatch->sheets()->sum('imported_rows'),
-            'skipped_rows'   => $importBatch->sheets()->sum('skipped_rows'),
-            'status'         => 'imported',
+            'valid_rows' => $validRows,
+            'invalid_rows' => $invalidRows,
+            'duplicate_rows' => $duplicateRows,
+            'conflict_rows' => $conflictRows,
+            'imported_rows' => $importedRows,
+            'skipped_rows' => $skippedRows,
+            'status' => $status,
+            'notes' => $hasFailedSheets
+                ? 'Batch completed with one or more failed sheets. Check sheet statuses for details.'
+                : null,
         ]);
     }
 
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         $importBatch = ImportBatch::find($this->importBatchId);
 

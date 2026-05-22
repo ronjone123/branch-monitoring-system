@@ -10,6 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\ImportConflict;
+use Illuminate\Support\Facades\DB;
 
 class SalesTransactionController extends Controller
 {
@@ -174,6 +175,96 @@ class SalesTransactionController extends Controller
             })
             ->when($request->filled('import_batch_id'), function ($query) use ($request) {
                 $query->where('import_batch_id', $request->import_batch_id);
+            })
+            ->when($request->filled('product_group'), function ($query) use ($request) {
+                $productGroup = strtolower((string) $request->product_group);
+
+                if ($productGroup === 'motorcycle') {
+                    $query->whereRaw('UPPER(TRIM(product_line_name)) = ?', [
+                        'MOTORCYCLE',
+                    ]);
+                }
+
+                if ($productGroup === 'appliance') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                        'APPLIANCE',
+                        'APPLIANCES',
+                    ]);
+                }
+
+                if ($productGroup === 'furniture') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                        'FURNITURE',
+                    ]);
+                }
+
+                if ($productGroup === 'bed_foam') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                        'BED OR FOAM',
+                        'BED FOAM',
+                        'FOAM',
+                    ]);
+                }
+
+                if ($productGroup === 'non_motorcycle') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                        'APPLIANCE',
+                        'APPLIANCES',
+                        'FURNITURE',
+                        'BED OR FOAM',
+                        'BED FOAM',
+                        'FOAM',
+                    ]);
+                }
+
+                if ($productGroup === 'spare_parts') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                        'SPARE PARTS',
+                        'SPARE PART',
+                        'PARTS',
+                    ]);
+                }
+            })
+            ->when($request->filled('transaction_type'), function ($query) use ($request) {
+                $transactionType = strtolower((string) $request->transaction_type);
+
+                if ($transactionType === 'cash_sales') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(transaction_type))'), [
+                        'CASH',
+                        'CASH SALES',
+                    ]);
+                }
+
+                if ($transactionType === 'installment_sales') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(transaction_type))'), [
+                        'INSTALLMENT',
+                        'INSTALLMENT SALES',
+                    ]);
+                }
+            })
+
+            ->when($request->filled('unit_type'), function ($query) use ($request) {
+                $unitType = strtolower((string) $request->unit_type);
+
+                if ($unitType === 'repo') {
+                    $query->whereIn(DB::raw('UPPER(TRIM(unit_type))'), [
+                        'REPO',
+                        'REPOSSESSED',
+                        'REPOSSESSION',
+                    ]);
+                }
+
+                if ($unitType === 'brand_new') {
+                    $query->where(function ($unitQuery) {
+                        $unitQuery->whereNull('unit_type')
+                            ->orWhere('unit_type', '')
+                            ->orWhereNotIn(DB::raw('UPPER(TRIM(unit_type))'), [
+                                'REPO',
+                                'REPOSSESSED',
+                                'REPOSSESSION',
+                            ]);
+                    });
+                }
             })
             ->when($request->filled('customer_name'), function ($query) use ($request) {
                 $query->where('customer_name', 'like', '%' . $request->customer_name . '%');

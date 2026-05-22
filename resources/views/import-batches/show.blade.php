@@ -349,7 +349,7 @@
     @php
         $mapStatusClass = function ($status) {
             return match (strtolower((string) $status)) {
-                'processed', 'completed', 'success', 'parsed' => 'success',
+                'processed', 'completed', 'success', 'parsed', 'imported' => 'success',
                 'processing', 'parsing', 'uploaded', 'in_progress' => 'info',
                 'pending', 'queued', 'draft' => 'warning',
                 'failed', 'error', 'rejected' => 'danger',
@@ -360,6 +360,21 @@
         $formatStatus = function ($status) {
             return ucfirst(str_replace('_', ' ', (string) $status));
         };
+
+        $autoRefreshStatuses = ['queued', 'processing'];
+
+        $shouldAutoRefresh =
+            in_array(strtolower((string) $importBatch->status), $autoRefreshStatuses, true)
+            || $importBatch->sheets->contains(function ($sheet) use ($autoRefreshStatuses) {
+                return in_array(strtolower((string) $sheet->status), $autoRefreshStatuses, true);
+            });
+
+        $batchIsBusy = in_array(strtolower((string) $importBatch->status), ['queued', 'processing'], true);
+
+            $hasParseableSheets = $importBatch->sheets->contains(function ($sheet) {
+                return $sheet->sheet_type === 'transaction'
+                    && in_array(strtolower((string) $sheet->status), ['pending', 'failed'], true);
+            });
     @endphp
 
    <div class="summary-shell px-3 px-md-4 py-4" style="padding-top: 6.5rem;">
@@ -401,8 +416,16 @@
                     data-loading="true"
                     data-loading-message="Parsing all transaction sheets. Please wait...">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-summary-success">
-                        Parse All Transaction Sheets
+                    <button type="submit"
+                            class="btn btn-success btn-summary-success"
+                            @disabled($batchIsBusy || ! $hasParseableSheets)>
+                        @if($batchIsBusy)
+                            Processing...
+                        @elseif(! $hasParseableSheets)
+                            No Sheets to Parse
+                        @else
+                            Parse All Transaction Sheets
+                        @endif
                     </button>
                 </form>
 
@@ -411,6 +434,18 @@
                 </a>
             </div>
         </div>
+            @if($shouldAutoRefresh)
+                <div class="alert alert-info rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-between gap-3 mb-4">
+                    <div>
+                        <strong>Import is currently {{ $formatStatus($importBatch->status) }}.</strong>
+                        <div class="small">
+                            This page will refresh automatically every 5 seconds until processing is finished.
+                        </div>
+                    </div>
+
+                    <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
+                </div>
+            @endif
 
         {{-- Quick summary --}}
         <div class="row g-4 mb-4">
@@ -579,37 +614,61 @@
                                             <td>{{ $sheet->conflict_rows }}</td>
                                             <td>{{ $sheet->notes ?? '-' }}</td>
                                             <td>
-                                                @if($sheet->sheet_type === 'transaction')
-                                                    <div class="d-flex flex-column gap-2">
-                                                        <a href="{{ route('import-batches.sheets.preview', [$importBatch, $sheet]) }}"
-                                                           class="btn btn-sm btn-outline-primary btn-summary-outline">
-                                                            Preview
-                                                        </a>
+                                              @if($sheet->sheet_type === 'transaction')
+                                                @php
+                                                    $sheetStatus = strtolower((string) $sheet->status);
 
+                                                    $canParseSheet = in_array($sheetStatus, ['pending', 'failed'], true);
+                                                    $isSheetBusy = in_array($sheetStatus, ['queued', 'processing'], true);
+                                                    $isSheetImported = $sheetStatus === 'imported';
+                                                @endphp
+
+                                                <div class="d-flex flex-column gap-2">
+                                                    <a href="{{ route('import-batches.sheets.preview', [$importBatch, $sheet]) }}"
+                                                    class="btn btn-sm btn-outline-primary btn-summary-outline">
+                                                        Preview
+                                                    </a>
+
+                                                    @if($canParseSheet)
                                                         <form action="{{ route('import-batches.sheets.parse', [$importBatch, $sheet]) }}"
-                                                                method="POST"
-                                                                data-loading="true"
-                                                                data-loading-message="Parsing selected sheet. Please wait...">
+                                                            method="POST"
+                                                            data-loading="true"
+                                                            data-loading-message="Parsing selected sheet. Please wait...">
                                                             @csrf
+
                                                             <button type="submit" class="btn btn-sm btn-success w-100 btn-summary-outline">
                                                                 Parse
                                                             </button>
                                                         </form>
+                                                    @elseif($isSheetBusy)
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 btn-summary-outline" disabled>
+                                                            Processing...
+                                                        </button>
+                                                    @elseif($isSheetImported)
+                                                        <button type="button" class="btn btn-sm btn-outline-success w-100 btn-summary-outline" disabled>
+                                                            Imported
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 btn-summary-outline" disabled>
+                                                            Not Available
+                                                        </button>
+                                                    @endif
 
-                                                        <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
-                                                                method="POST"
-                                                                data-loading="true"
-                                                                data-loading-message="Resetting parsed sheet data. Please wait..."
-                                                                onsubmit="return confirm('Reset parsed data for this sheet?')">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 btn-summary-outline">
-                                                                Reset
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                @else
-                                                    <span class="text-muted">-</span>
-                                                @endif
+                                                    <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
+                                                        method="POST"
+                                                        data-loading="true"
+                                                        data-loading-message="Resetting parsed sheet data. Please wait..."
+                                                        onsubmit="return confirm('Reset parsed data for this sheet?')">
+                                                        @csrf
+
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100 btn-summary-outline">
+                                                            Reset
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
                                             </td>
                                         </tr>
                                     @empty
@@ -684,40 +743,46 @@
         </div>
 
         <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const overlay = document.getElementById('pageLoadingOverlay');
+            document.addEventListener('DOMContentLoaded', function () {
+                const overlay = document.getElementById('pageLoadingOverlay');
 
-        function showLoading(message = null) {
-            if (!overlay) return;
+                function showLoading(message = null) {
+                    if (!overlay) return;
 
-            if (message) {
-                const text = overlay.querySelector('.page-loading-text');
-                if (text) text.textContent = message;
-            }
+                    if (message) {
+                        const text = overlay.querySelector('.page-loading-text');
+                        if (text) {
+                            text.textContent = message;
+                        }
+                    }
 
-            overlay.classList.remove('d-none');
-            document.body.classList.add('loading-active');
-        }
+                    overlay.classList.remove('d-none');
+                    document.body.classList.add('loading-active');
+                }
 
-        document.querySelectorAll('form[data-loading="true"]').forEach(form => {
-            form.addEventListener('submit', function () {
-                const message = form.getAttribute('data-loading-message');
-                showLoading(message);
+                document.querySelectorAll('form[data-loading="true"]').forEach(form => {
+                    form.addEventListener('submit', function () {
+                        const message = form.getAttribute('data-loading-message');
+                        showLoading(message);
 
-                const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                submitButtons.forEach(btn => {
-                    btn.disabled = true;
+                        const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+
+                        submitButtons.forEach(btn => {
+                            btn.disabled = true;
+
+                            if (btn.tagName === 'BUTTON') {
+                                btn.dataset.originalText = btn.innerHTML;
+                                btn.innerHTML = 'Processing...';
+                            }
+                        });
+                    });
                 });
-            });
-        });
-    });
 
-    submitButtons.forEach(btn => {
-    btn.disabled = true;
-    if (btn.tagName === 'BUTTON') {
-        btn.dataset.originalText = btn.innerHTML;
-        btn.innerHTML = 'Processing...';
-    }
-});
-</script>
+                @if($shouldAutoRefresh)
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 5000);
+                @endif
+            });
+        </script>
 </x-app-layout>

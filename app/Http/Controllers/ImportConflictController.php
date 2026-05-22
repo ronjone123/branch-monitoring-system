@@ -173,6 +173,11 @@ class ImportConflictController extends Controller
 
     public function acceptIncomingUpdate(ImportConflict $importConflict): RedirectResponse
     {
+        if (in_array($importConflict->conflict_type, ['missing_from_latest_import', 'data_quality_conflict'], true)) {
+            return redirect()
+                ->route('import-conflicts.show', $importConflict)
+                ->with('success', 'This conflict type cannot be accepted as an incoming update. Please review, ignore, or mark it resolved.');
+        }
         $transaction = $importConflict->existingSalesTransaction;
 
         if (! $transaction) {
@@ -186,105 +191,174 @@ class ImportConflictController extends Controller
         $invoiceDate = $this->normalizeDate($cells[0] ?? null);
         $accountNumber = $this->toString($cells[1] ?? null);
         $customerName = $this->toString($cells[2] ?? null);
-        $receiptNumber = $this->toString($cells[10] ?? null);
+        $contactNumber = $this->toString($cells[3] ?? null);
+        $birthDate = $this->normalizeDate($cells[4] ?? null);
 
+        $address = $this->toString($cells[5] ?? null);
+        $streetAddress = $this->toString($cells[5] ?? null);
+        $cityMunicipality = $this->toString($cells[6] ?? null);
+
+        $salesType = $this->toString($cells[7] ?? null);
+        $agentReferralName = $this->toString($cells[8] ?? null);
+        $transactionType = $this->toString($cells[9] ?? null);
+        $receiptNumber = $this->toString($cells[10] ?? null);
+        $salesSource = $this->toString($cells[11] ?? null);
+
+        $product = $this->toString($cells[12] ?? null);
         $unitType = $this->toString($cells[12] ?? null);
         $productLineName = $this->toString($cells[13] ?? null);
         $categoryName = $this->toString($cells[14] ?? null);
         $brandName = $this->toString($cells[15] ?? null);
         $model = $this->toString($cells[16] ?? null);
-
+        $capacity = $this->toString($cells[17] ?? null);
+        $productDescription = $this->toString($cells[18] ?? null);
         $serialNumber = $this->toString($cells[19] ?? null);
         $engineNumber = $this->toString($cells[20] ?? null);
         $chassisNumber = $this->toString($cells[21] ?? null);
+        $partsNumber = $this->toString($cells[22] ?? null);
+        $color = $this->toString($cells[23] ?? null);
         $stockCode = $this->toString($cells[24] ?? null);
+        $productRemarks = $this->toString($cells[25] ?? null);
 
         $amount = $this->normalizeNumber($cells[26] ?? null);
+        $cashAmount = $this->normalizeNumber($cells[27] ?? null);
+        $downpaymentAmount = $this->normalizeNumber($cells[28] ?? null);
+        $promissoryNoteAmount = $this->normalizeNumber($cells[29] ?? null);
+        $grossSalesAmount = $this->normalizeNumber($cells[30] ?? null);
+        $commissionAmount = $this->normalizeNumber($cells[31] ?? null);
+        $monthlyAmortization = $this->normalizeNumber($cells[32] ?? null);
         $terms = $this->toString($cells[33] ?? null);
 
+        $branchNameFromSheet = $this->toString($cells[34] ?? null);
+        $pouchingDate = $this->normalizeDate($cells[35] ?? null);
+        $encodedBy = $this->toString($cells[36] ?? null);
+        $dateLastUpdated = $this->normalizeDate($cells[37] ?? null);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Match Key
+        |--------------------------------------------------------------------------
+        | Must match TransactionSheetParser v4 logic.
+        |--------------------------------------------------------------------------
+        */
+        if ($engineNumber || $chassisNumber) {
+            $unitIdentifier = implode('|', [
+                $this->normalizeIdentityValue($engineNumber),
+                $this->normalizeIdentityValue($chassisNumber),
+            ]);
+        } elseif ($serialNumber) {
+            $unitIdentifier = $this->normalizeIdentityValue($serialNumber);
+        } elseif ($stockCode) {
+            $unitIdentifier = $this->normalizeIdentityValue($stockCode);
+        } elseif ($receiptNumber) {
+            $unitIdentifier = $this->normalizeIdentityValue($receiptNumber);
+        } else {
+            $unitIdentifier = 'NO_UNIT_IDENTIFIER';
+        }
+
         $matchKey = hash('sha256', implode('|', [
+            'v4',
             $importConflict->branch_id ?? '',
-            $invoiceDate ?? '',
-            $accountNumber ?? '',
-            $customerName ?? '',
-            $receiptNumber ?? '',
-            $unitType ?? '',
-            $productLineName ?? '',
-            $categoryName ?? '',
-            $brandName ?? '',
-            $model ?? '',
-            $serialNumber ?? '',
-            $engineNumber ?? '',
-            $chassisNumber ?? '',
-            $stockCode ?? '',
+            $this->normalizeIdentityValue($accountNumber),
+            $unitIdentifier,
         ]));
 
+        /*
+        |--------------------------------------------------------------------------
+        | Row Hash
+        |--------------------------------------------------------------------------
+        | Must match the full parser row_hash field list.
+        |--------------------------------------------------------------------------
+        */
         $rowHash = hash('sha256', implode('|', [
             $importConflict->branch_id ?? '',
             $invoiceDate ?? '',
             $accountNumber ?? '',
             $customerName ?? '',
+            $contactNumber ?? '',
+            $birthDate ?? '',
+            $address ?? '',
+            $cityMunicipality ?? '',
+            $salesType ?? '',
+            $agentReferralName ?? '',
+            $transactionType ?? '',
             $receiptNumber ?? '',
+            $salesSource ?? '',
+            $product ?? '',
             $unitType ?? '',
             $productLineName ?? '',
             $categoryName ?? '',
             $brandName ?? '',
             $model ?? '',
+            $capacity ?? '',
+            $productDescription ?? '',
             $serialNumber ?? '',
             $engineNumber ?? '',
             $chassisNumber ?? '',
+            $partsNumber ?? '',
+            $color ?? '',
             $stockCode ?? '',
+            $productRemarks ?? '',
             $amount ?? '',
+            $cashAmount ?? '',
+            $downpaymentAmount ?? '',
+            $promissoryNoteAmount ?? '',
+            $grossSalesAmount ?? '',
+            $commissionAmount ?? '',
+            $monthlyAmortization ?? '',
             $terms ?? '',
+            $pouchingDate ?? '',
+            $encodedBy ?? '',
+            $dateLastUpdated ?? '',
         ]));
 
         $transaction->update([
             'invoice_date' => $invoiceDate,
             'account_number' => $accountNumber,
             'customer_name' => $customerName,
-            'contact_number' => $this->toString($cells[3] ?? null),
-            'birth_date' => $this->normalizeDate($cells[4] ?? null),
+            'contact_number' => $contactNumber,
+            'birth_date' => $birthDate,
 
-            'address' => $this->toString($cells[5] ?? null),
-            'street_address' => $this->toString($cells[5] ?? null),
-            'city_municipality' => $this->toString($cells[6] ?? null),
+            'address' => $address,
+            'street_address' => $streetAddress,
+            'city_municipality' => $cityMunicipality,
 
-            'sales_type' => $this->toString($cells[7] ?? null),
-            'agent_referral_name' => $this->toString($cells[8] ?? null),
-            'transaction_type' => $this->toString($cells[9] ?? null),
+            'sales_type' => $salesType,
+            'agent_referral_name' => $agentReferralName,
+            'transaction_type' => $transactionType,
             'receipt_number' => $receiptNumber,
-            'sales_source' => $this->toString($cells[11] ?? null),
+            'sales_source' => $salesSource,
 
-            'product' => $unitType,
+            'product' => $product,
             'unit_type' => $unitType,
             'product_line_name' => $productLineName,
             'category_name_raw' => $categoryName,
             'brand_name_raw' => $brandName,
             'model' => $model,
-            'capacity' => $this->toString($cells[17] ?? null),
-            'product_description' => $this->toString($cells[18] ?? null),
+            'capacity' => $capacity,
+            'product_description' => $productDescription,
             'serial_number' => $serialNumber,
             'engine_number' => $engineNumber,
             'chassis_number' => $chassisNumber,
-            'parts_number' => $this->toString($cells[22] ?? null),
-            'color' => $this->toString($cells[23] ?? null),
+            'parts_number' => $partsNumber,
+            'color' => $color,
             'stock_code' => $stockCode,
-            'product_remarks' => $this->toString($cells[25] ?? null),
+            'product_remarks' => $productRemarks,
 
             'amount' => $amount,
-            'srp_cod_amount' => $this->normalizeNumber($cells[26] ?? null),
-            'cash_amount' => $this->normalizeNumber($cells[27] ?? null),
-            'downpayment_amount' => $this->normalizeNumber($cells[28] ?? null),
-            'promissory_note_amount' => $this->normalizeNumber($cells[29] ?? null),
-            'gross_sales_amount' => $this->normalizeNumber($cells[30] ?? null),
-            'commission_amount' => $this->normalizeNumber($cells[31] ?? null),
-            'monthly_amortization' => $this->normalizeNumber($cells[32] ?? null),
+            'srp_cod_amount' => $amount,
+            'cash_amount' => $cashAmount,
+            'downpayment_amount' => $downpaymentAmount,
+            'promissory_note_amount' => $promissoryNoteAmount,
+            'gross_sales_amount' => $grossSalesAmount,
+            'commission_amount' => $commissionAmount,
+            'monthly_amortization' => $monthlyAmortization,
             'terms' => $terms,
 
-            'branch_name_from_sheet' => $this->toString($cells[34] ?? null),
-            'pouching_date' => $this->normalizeDate($cells[35] ?? null),
-            'encoded_by' => $this->toString($cells[36] ?? null),
-            'date_last_updated' => $this->normalizeDate($cells[37] ?? null),
+            'branch_name_from_sheet' => $branchNameFromSheet,
+            'pouching_date' => $pouchingDate,
+            'encoded_by' => $encodedBy,
+            'date_last_updated' => $dateLastUpdated,
 
             'source_row_number' => $importConflict->source_row_number,
             'raw_row_data' => $cells,
@@ -343,5 +417,10 @@ class ImportConflictController extends Controller
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function normalizeIdentityValue(?string $value): string
+    {
+        return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $value)));
     }
 }
