@@ -44,9 +44,6 @@ class TransactionSheetParser
 
         $validProductLines = config('import.valid_product_lines', []);
         $knownBrands = config('import.known_brands', []);
-        $currentSheetMatchKeys = [];
-        $currentSheetInvoiceDates = [];
-
         $existingTransactions = SalesTransaction::query()
             ->where('branch_id', $sheet->branch_id)
             ->get([
@@ -262,12 +259,6 @@ class TransactionSheetParser
                 $this->normalizeIdentityValue($accountNumber),
                 $unitIdentifier,
             ]));
-
-            $currentSheetMatchKeys[$matchKey] = true;
-
-            if ($invoiceDate) {
-                $currentSheetInvoiceDates[] = $invoiceDate;
-            }
 
             /*
             |--------------------------------------------------------------------------
@@ -604,15 +595,6 @@ class TransactionSheetParser
             }
             $imported++;
         }
-        $missingConflicts = $this->createMissingFromLatestImportConflicts(
-            $batch,
-            $sheet,
-            array_keys($currentSheetMatchKeys),
-            $currentSheetInvoiceDates
-        );
-
-        $conflicts += $missingConflicts;
-
         $sheet->update([
             'imported_rows' => $imported,
             'valid_rows' => $imported,
@@ -745,64 +727,5 @@ class TransactionSheetParser
         }
 
         return $score;
-    }
-    private function createMissingFromLatestImportConflicts(
-        ImportBatch $batch,
-        ImportBatchSheet $sheet,
-        array $currentSheetMatchKeys,
-        array $invoiceDates
-    ): int {
-        if (empty($currentSheetMatchKeys) || empty($invoiceDates)) {
-            return 0;
-        }
-
-        $dateFrom = collect($invoiceDates)->min();
-        $dateTo = collect($invoiceDates)->max();
-
-        if (! $dateFrom || ! $dateTo) {
-            return 0;
-        }
-
-        $existingTransactions = SalesTransaction::query()
-            ->where('branch_id', $sheet->branch_id)
-            ->whereDate('invoice_date', '>=', $dateFrom)
-            ->whereDate('invoice_date', '<=', $dateTo)
-            ->where('import_batch_id', '!=', $batch->id)
-            ->whereNotNull('match_key')
-            ->whereNotIn('match_key', $currentSheetMatchKeys)
-            ->where(function ($query) {
-                $query->where('cash_amount', '>', 0)
-                    ->orWhere('promissory_note_amount', '>', 0)
-                    ->orWhere('gross_sales_amount', '>', 0)
-                    ->orWhere('amount', '>', 0);
-            })
-            ->get();
-
-        $created = 0;
-
-        foreach ($existingTransactions as $transaction) {
-            ImportConflict::updateOrCreate(
-                [
-                    'import_batch_sheet_id' => $sheet->id,
-                    'source_row_number' => 0,
-                    'match_key' => $transaction->match_key,
-                ],
-                [
-                    'import_batch_id' => $batch->id,
-                    'existing_sales_transaction_id' => $transaction->id,
-                    'branch_id' => $sheet->branch_id,
-                    'conflict_type' => 'missing_from_latest_import',
-                    'new_row_hash' => $transaction->row_hash,
-                    'existing_row_data' => $transaction->raw_row_data,
-                    'incoming_row_data' => [],
-                    'status' => 'pending',
-                    'notes' => 'Previously imported transaction is missing from the latest parsed sheet for this branch/date period. Review if this should be voided or kept.',
-                ]
-            );
-
-            $created++;
-        }
-
-        return $created;
     }
 }
