@@ -5,6 +5,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BusinessUnitController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExecutiveDashboardController;
 use App\Http\Controllers\ImportBatchController;
 use App\Http\Controllers\ImportConflictController;
 use App\Http\Controllers\LocationController;
@@ -32,6 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:super_admin,admin,importer,viewer')
         ->name('dashboard');
+
+    Route::get('/executive-dashboard', [ExecutiveDashboardController::class, 'index'])
+        ->middleware('role:super_admin,admin,importer,viewer')
+        ->name('executive.dashboard');
 
 
     /*

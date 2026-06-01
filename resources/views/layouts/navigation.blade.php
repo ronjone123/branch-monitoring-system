@@ -3,6 +3,7 @@
         $user = auth()->user();
 
         $canAccessImports = $user?->hasAnyRole(['super_admin', 'admin', 'importer']);
+        $canAccessDashboards = $user?->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']);
         $canAccessSalesTransactions = $user?->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']);
         $canAccessImportConflicts = $user?->hasAnyRole(['super_admin', 'admin']);
         $canAccessMasterData = $user?->hasRole('super_admin');
@@ -34,6 +35,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if($canAccessDashboards)
+                        <x-nav-link :href="route('executive.dashboard')" :active="request()->routeIs('executive.dashboard')">
+                            {{ __('Executive Dashboard') }}
+                        </x-nav-link>
+                    @endif
 
                     @if($canAccessImports)
                         <x-nav-link :href="route('import-batches.index')" :active="request()->routeIs('import-batches.*')">
@@ -159,6 +166,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if($canAccessDashboards)
+                <x-responsive-nav-link :href="route('executive.dashboard')" :active="request()->routeIs('executive.dashboard')">
+                    {{ __('Executive Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
 
             @if($canAccessImports)
                 <x-responsive-nav-link :href="route('import-batches.index')" :active="request()->routeIs('import-batches.*')">
