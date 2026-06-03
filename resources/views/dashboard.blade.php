@@ -2256,7 +2256,7 @@
     </div>
 </div>
 
-        <div id="executive-kpi-detail-reports" class="summary-card mb-4">
+        <div id="report-kpi-details" class="summary-card mb-4">
             <div class="p-3 p-md-4">
                 <section class="reporting-detail-board executive-kpi-detail-reports">
                     <div class="reporting-detail-board-header compact">
@@ -2280,7 +2280,7 @@
                             <div class="executive-kpi-detail-meta">
                                 Total amount using the reporting dashboard amount standard.
                             </div>
-                            <a href="#branch-performance" class="executive-kpi-detail-link">View Branch Sales Report</a>
+                            <a href="#report-branch-sales" class="executive-kpi-detail-link">View Branch Sales Report</a>
                         </article>
 
                         <article class="executive-kpi-detail-card">
@@ -2307,7 +2307,7 @@
                             <div class="executive-kpi-detail-meta">
                                 Transactions in the selected report period.
                             </div>
-                            <a href="#latest-sales-transactions" class="executive-kpi-detail-link">View Latest Transactions</a>
+                            <a href="#report-latest-sales" class="executive-kpi-detail-link">View Latest Transactions</a>
                         </article>
 
                         <article class="executive-kpi-detail-card">
@@ -2316,7 +2316,7 @@
                             <div class="executive-kpi-detail-meta">
                                 Branches with matching transaction activity.
                             </div>
-                            <a href="#branch-performance" class="executive-kpi-detail-link">View Branch Sales Report</a>
+                            <a href="#report-branch-sales" class="executive-kpi-detail-link">View Branch Sales Report</a>
                         </article>
 
                         <article class="executive-kpi-detail-card">
@@ -2331,14 +2331,14 @@
                             <div class="executive-kpi-detail-meta">
                                 Latest matching transaction date for the selected filters.
                             </div>
-                            <a href="#latest-sales-transactions" class="executive-kpi-detail-link">View Latest Transactions</a>
+                            <a href="#report-latest-sales" class="executive-kpi-detail-link">View Latest Transactions</a>
                         </article>
                     </div>
                 </section>
             </div>
         </div>
 
-        <div id="sales-mix-detail-report" class="summary-card mb-4">
+        <div id="report-sales-mix-detail" class="summary-card mb-4">
             <div class="p-3 p-md-4">
                 <section class="reporting-detail-board sales-mix-detail-report-board" data-sales-mix-report>
                     <div class="reporting-detail-board-header compact">
@@ -2468,7 +2468,7 @@
             </div>
         </div>
 
-        <div id="product-sales-report" class="summary-card mb-4">
+        <div id="report-product-sales" class="summary-card mb-4">
             <div class="p-3 p-md-4">
                 <section class="reporting-detail-board product-sales-report-board" data-product-sales-report>
                     <div class="reporting-detail-board-header compact">
@@ -2560,7 +2560,7 @@
             </div>
         </div>
 
-        <div id="customer-intelligence" class="summary-card mb-4">
+        <div id="report-customer" class="summary-card mb-4">
             <div class="summary-section-header compact">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Customer Intelligence</h5>
@@ -2713,6 +2713,8 @@
                 </section>
             </div>
         </div>
+
+            <div id="report-cash-installment"></div>
 
             <div id="appliance-cash" class="summary-card report-table-card">
                 <div class="summary-section-header compact">
@@ -3615,7 +3617,7 @@
             </div>
         </div>
 
-        <div id="branch-performance" class="summary-card report-table-card">
+        <div id="report-branch-sales" class="summary-card report-table-card">
             <div class="summary-section-header compact">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
                     <div>
@@ -3705,7 +3707,7 @@
             </div>
         </div>
 
-        <div id="business-unit-totals" class="summary-card report-table-card business-unit-totals-section">
+        <div id="report-business-unit-totals" class="summary-card report-table-card business-unit-totals-section">
             <div class="summary-section-header compact">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Business Unit Totals</h5>
@@ -3786,7 +3788,7 @@
             </div>
         </div>
 
-        <div id="latest-sales-transactions" class="summary-card report-table-card latest-sales-section mb-4">
+        <div id="report-latest-sales" class="summary-card report-table-card latest-sales-section mb-4">
             <div class="summary-section-header compact">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Latest Sales Transactions</h5>
@@ -3937,7 +3939,7 @@
             </div>
         </div>
 
-        <div id="branch-transaction-totals" class="summary-card report-table-card branch-transaction-total-section mb-4">
+        <div id="report-branch-transaction-total" class="summary-card report-table-card branch-transaction-total-section mb-4">
             <div class="summary-section-header compact">
                 <div>
                     <h5 class="mb-1 dashboard-card-title">Branch Transaction Totals</h5>
@@ -4022,7 +4024,7 @@
         </div>
 
         @if(auth()->user()->hasAnyRole(['importer', 'admin', 'super_admin']))
-            <div id="latest-import-batches" class="summary-card report-table-card latest-imports-section mb-4">
+            <div id="report-latest-imports" class="summary-card report-table-card latest-imports-section mb-4">
                 <div class="summary-section-header compact">
                     <div>
                         <h5 class="mb-1 dashboard-card-title">Latest Import Batches</h5>
@@ -4177,18 +4179,18 @@
                 <a href="#combined-installment">Combined Installment</a>
 
                 <div class="report-menu-group">Summary Sections</div>
-                <a href="#executive-kpi-detail-reports">Executive KPI Detail Reports</a>
-                <a href="#sales-mix-detail-report">Sales Mix Detail Report</a>
-                <a href="#product-sales-report">Product & Sales Report</a>
-                <a href="#customer-intelligence">Customer Intelligence</a>
-                <a href="#branch-performance">Branch Performance</a>
-                <a href="#business-unit-totals">Business Unit Totals</a>
-                <a href="#latest-sales-transactions">Latest Sales Transactions</a>
-                <a href="#branch-transaction-totals">Branch Transaction Totals</a>
+                <a href="#report-kpi-details">Executive KPI Detail Reports</a>
+                <a href="#report-sales-mix-detail">Sales Mix Detail Report</a>
+                <a href="#report-product-sales">Product & Sales Report</a>
+                <a href="#report-customer">Customer Intelligence</a>
+                <a href="#report-branch-sales">Branch Performance</a>
+                <a href="#report-business-unit-totals">Business Unit Totals</a>
+                <a href="#report-latest-sales">Latest Sales Transactions</a>
+                <a href="#report-branch-transaction-total">Branch Transaction Totals</a>
                 
 
                 @if(auth()->user()->hasAnyRole(['importer', 'admin', 'super_admin']))
-                    <a href="#latest-import-batches">Latest Import Batches</a>
+                    <a href="#report-latest-imports">Latest Import Batches</a>
                 @endif
 
             </div>

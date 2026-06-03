@@ -48,6 +48,14 @@
             margin-bottom: 1.15rem;
         }
 
+        .executive-filter-mobile-summary {
+            display: none;
+        }
+
+        .executive-filter-collapsible {
+            display: block;
+        }
+
         .executive-filter-presets {
             display: flex;
             flex-wrap: wrap;
@@ -71,16 +79,23 @@
         }
 
         .executive-filter-preset:hover {
-            background: #f8fafc;
-            color: #0f172a;
-            border-color: rgba(15, 23, 42, 0.18);
+            background: rgba(96, 165, 250, 0.14);
+            color: #1d4ed8;
+            border-color: rgba(37, 99, 235, 0.28);
+            text-decoration: none;
         }
 
         .executive-filter-preset.active {
-            background: #0f172a;
-            border-color: #0f172a;
+            background: #2563eb;
+            border-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
+        }
+
+        .executive-filter-preset.active:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #ffffff;
         }
 
         .executive-filter-grid {
@@ -216,6 +231,48 @@
             color: #475569;
             background: rgba(100, 116, 139, 0.10);
             border-color: rgba(100, 116, 139, 0.20);
+        }
+
+        .executive-header-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .executive-report-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+            white-space: nowrap;
+            border-radius: 999px;
+            padding: .42rem .75rem;
+            color: #ffffff;
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            font-size: .75rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            text-decoration: none;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
+            transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        }
+
+        .executive-report-link:hover,
+        .executive-report-link:focus {
+            color: #ffffff;
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(29, 78, 216, 0.20);
+            transform: translateY(-1px);
+        }
+
+        .executive-report-link:active {
+            transform: translateY(0);
         }
 
         .executive-kpi-board-grid {
@@ -581,6 +638,78 @@
             margin-top: 0.55rem;
             position: relative;
             z-index: 1;
+        }
+
+        .latest-customer-sales-card {
+            min-height: 140px;
+        }
+
+        .latest-customer-sale-details {
+            position: relative;
+            z-index: 1;
+        }
+
+        .latest-customer-sale-name {
+            color: #0f172a;
+            font-size: 1.1rem;
+            font-weight: 900;
+            line-height: 1.25;
+            word-break: normal;
+            overflow-wrap: anywhere;
+            margin-bottom: .45rem;
+        }
+
+        .latest-customer-sale-row {
+            color: #0f172a;
+            font-size: .82rem;
+            font-weight: 800;
+            line-height: 1.4;
+        }
+
+        .latest-customer-sale-row span {
+            color: #64748b;
+            font-weight: 800;
+        }
+
+        .latest-customer-sale-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .45rem;
+            margin-top: .7rem;
+        }
+
+        .latest-customer-sale-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: .22rem .5rem;
+            font-size: .68rem;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .latest-customer-sale-pill.brand-new {
+            color: #166534;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.22);
+        }
+
+        .latest-customer-sale-pill.repo {
+            color: #92400e;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .latest-customer-sale-empty {
+            position: relative;
+            z-index: 1;
+            color: #64748b;
+            font-size: .82rem;
+            font-weight: 700;
+            line-height: 1.4;
         }
 
         .kpi-status-pill {
@@ -1398,6 +1527,10 @@
                 flex-direction: column;
             }
 
+            .executive-header-actions {
+                justify-content: flex-start;
+            }
+
             .executive-insight-card-header.compact,
             .exec-section-header.compact,
             .pn-target-card-header.compact {
@@ -1413,6 +1546,62 @@
 
             .exec-filter-card {
                 padding: 1rem;
+            }
+
+            .executive-filter-mobile-summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                background: #ffffff;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+                border-radius: 1rem;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+                padding: .9rem;
+            }
+
+            .executive-filter-summary-label {
+                display: block;
+                color: #64748b;
+                font-size: .7rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+                margin-bottom: .15rem;
+            }
+
+            .executive-filter-mobile-summary strong {
+                color: #0f172a;
+                font-size: .95rem;
+                font-weight: 900;
+            }
+
+            .executive-filter-mobile-summary p {
+                margin: .15rem 0 0;
+                color: #64748b;
+                font-size: .78rem;
+                font-weight: 700;
+            }
+
+            .executive-filter-toggle {
+                border: 1px solid rgba(37, 99, 235, 0.25);
+                background: #2563eb;
+                color: #ffffff;
+                border-radius: 999px;
+                padding: .55rem .8rem;
+                font-size: .78rem;
+                font-weight: 900;
+                white-space: nowrap;
+                box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
+            }
+
+            .executive-filter-collapsible {
+                display: none;
+                margin-top: .85rem;
+            }
+
+            .executive-filter-collapsible.is-open {
+                display: block;
             }
 
             .exec-kpi {
@@ -1432,6 +1621,15 @@
         @media (max-width: 575.98px) {
             .executive-kpi-board-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .executive-filter-mobile-summary {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .executive-filter-toggle {
+                width: 100%;
             }
         }
     </style>
@@ -1541,91 +1739,117 @@
                         'query' => ['date_preset' => 'all_time'],
                     ],
                 ];
+
+                $selectedBusinessUnit = $businessUnits->first(
+                    fn ($businessUnit) => (string) $businessUnit->id === (string) ($filters['business_unit_id'] ?? '')
+                );
+                $selectedBranch = $branches->first(
+                    fn ($branch) => (string) $branch->id === (string) ($filters['branch_id'] ?? '')
+                );
+                $selectedBusinessUnitLabel = $selectedBusinessUnit->name ?? 'All Business Units';
+                $selectedBranchLabel = $selectedBranch->display_name ?? 'All Branches';
             @endphp
 
-            <div class="executive-filter-presets" aria-label="Quick date filters">
-                @foreach($datePresetLinks as $presetKey => $presetLink)
-                    <a
-                        href="{{ route('executive.dashboard', array_merge($filterCarry, $presetLink['query'])) }}"
-                        class="executive-filter-preset {{ ($filters['date_preset'] ?? 'this_month') === $presetKey ? 'active' : '' }}"
-                    >
-                        {{ $presetLink['label'] }}
-                    </a>
-                @endforeach
+            <div class="executive-filter-mobile-summary">
+                <div>
+                    <span class="executive-filter-summary-label">Showing</span>
+                    <strong>{{ $datePresetLabel ?? 'This Month' }}</strong>
+                    <p>{{ $selectedBranchLabel }} &bull; {{ $selectedBusinessUnitLabel }}</p>
+                </div>
+
+                <button type="button" class="executive-filter-toggle" data-executive-filter-toggle aria-expanded="false">
+                    Change Filters
+                </button>
             </div>
 
-            <form method="GET" action="{{ route('executive.dashboard') }}">
-                <input type="hidden" name="date_preset" value="custom">
-                <div class="executive-filter-grid">
-                    <div>
-                        <label for="date_from" class="exec-filter-label">Date From</label>
-                        <input type="date" name="date_from" id="date_from" class="form-control" value="{{ $filters['date_from'] ?? '' }}">
-                    </div>
-
-                    <div>
-                        <label for="date_to" class="exec-filter-label">Date To</label>
-                        <input type="date" name="date_to" id="date_to" class="form-control" value="{{ $filters['date_to'] ?? '' }}">
-                    </div>
-
-                    <div>
-                        <label for="business_unit_id" class="exec-filter-label">Business Unit</label>
-                        <select name="business_unit_id" id="business_unit_id" class="form-select">
-                            <option value="">All Business Units</option>
-                            @foreach($businessUnits as $businessUnit)
-                                <option value="{{ $businessUnit->id }}" {{ (string) $filters['business_unit_id'] === (string) $businessUnit->id ? 'selected' : '' }}>
-                                    {{ $businessUnit->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="branch_id" class="exec-filter-label">Branch</label>
-                        <select name="branch_id" id="branch_id" class="form-select">
-                            <option value="">All Branches</option>
-                            @foreach($branches as $branch)
-                                <option value="{{ $branch->id }}" {{ (string) $filters['branch_id'] === (string) $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->display_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="product_group" class="exec-filter-label">Product Group</label>
-                        <select name="product_group" id="product_group" class="form-select">
-                            <option value="">All Product Groups</option>
-                            <option value="motorcycle" {{ $filters['product_group'] === 'motorcycle' ? 'selected' : '' }}>Motorcycle</option>
-                            <option value="appliance" {{ $filters['product_group'] === 'appliance' ? 'selected' : '' }}>Appliance</option>
-                            <option value="furniture" {{ $filters['product_group'] === 'furniture' ? 'selected' : '' }}>Furniture</option>
-                            <option value="bed_foam" {{ $filters['product_group'] === 'bed_foam' ? 'selected' : '' }}>Bed / Foam</option>
-                            <option value="spare_parts" {{ $filters['product_group'] === 'spare_parts' ? 'selected' : '' }}>Spare Parts</option>
-                            <option value="non_motorcycle" {{ $filters['product_group'] === 'non_motorcycle' ? 'selected' : '' }}>Non-Motorcycle</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="transaction_type" class="exec-filter-label">Transaction Type</label>
-                        <select name="transaction_type" id="transaction_type" class="form-select">
-                            <option value="">All Types</option>
-                            <option value="cash_sales" {{ $filters['transaction_type'] === 'cash_sales' ? 'selected' : '' }}>Cash Sales</option>
-                            <option value="installment_sales" {{ $filters['transaction_type'] === 'installment_sales' ? 'selected' : '' }}>Installment Sales</option>
-                        </select>
-                    </div>
-
-                    <div class="executive-filter-actions">
-                        <button type="submit" class="btn exec-btn-primary">Apply Filters</button>
-                        <a href="{{ route('executive.dashboard') }}" class="btn exec-btn-outline">Reset</a>
-                    </div>
+            <div class="executive-filter-collapsible" data-executive-filter-panel>
+                <div class="executive-filter-presets" aria-label="Quick date filters">
+                    @foreach($datePresetLinks as $presetKey => $presetLink)
+                        <a
+                            href="{{ route('executive.dashboard', array_merge($filterCarry, $presetLink['query'])) }}"
+                            class="executive-filter-preset {{ ($filters['date_preset'] ?? 'this_month') === $presetKey ? 'active' : '' }}"
+                        >
+                            {{ $presetLink['label'] }}
+                        </a>
+                    @endforeach
                 </div>
-            </form>
+
+                <form method="GET" action="{{ route('executive.dashboard') }}">
+                    <input type="hidden" name="date_preset" value="custom">
+                    <div class="executive-filter-grid">
+                        <div>
+                            <label for="date_from" class="exec-filter-label">Date From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ $filters['date_from'] ?? '' }}">
+                        </div>
+
+                        <div>
+                            <label for="date_to" class="exec-filter-label">Date To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ $filters['date_to'] ?? '' }}">
+                        </div>
+
+                        <div>
+                            <label for="business_unit_id" class="exec-filter-label">Business Unit</label>
+                            <select name="business_unit_id" id="business_unit_id" class="form-select">
+                                <option value="">All Business Units</option>
+                                @foreach($businessUnits as $businessUnit)
+                                    <option value="{{ $businessUnit->id }}" {{ (string) $filters['business_unit_id'] === (string) $businessUnit->id ? 'selected' : '' }}>
+                                        {{ $businessUnit->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="branch_id" class="exec-filter-label">Branch</label>
+                            <select name="branch_id" id="branch_id" class="form-select">
+                                <option value="">All Branches</option>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" {{ (string) $filters['branch_id'] === (string) $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->display_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="product_group" class="exec-filter-label">Product Group</label>
+                            <select name="product_group" id="product_group" class="form-select">
+                                <option value="">All Product Groups</option>
+                                <option value="motorcycle" {{ $filters['product_group'] === 'motorcycle' ? 'selected' : '' }}>Motorcycle</option>
+                                <option value="appliance" {{ $filters['product_group'] === 'appliance' ? 'selected' : '' }}>Appliance</option>
+                                <option value="furniture" {{ $filters['product_group'] === 'furniture' ? 'selected' : '' }}>Furniture</option>
+                                <option value="bed_foam" {{ $filters['product_group'] === 'bed_foam' ? 'selected' : '' }}>Bed / Foam</option>
+                                <option value="spare_parts" {{ $filters['product_group'] === 'spare_parts' ? 'selected' : '' }}>Spare Parts</option>
+                                <option value="non_motorcycle" {{ $filters['product_group'] === 'non_motorcycle' ? 'selected' : '' }}>Non-Motorcycle</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="transaction_type" class="exec-filter-label">Transaction Type</label>
+                            <select name="transaction_type" id="transaction_type" class="form-select">
+                                <option value="">All Types</option>
+                                <option value="cash_sales" {{ $filters['transaction_type'] === 'cash_sales' ? 'selected' : '' }}>Cash Sales</option>
+                                <option value="installment_sales" {{ $filters['transaction_type'] === 'installment_sales' ? 'selected' : '' }}>Installment Sales</option>
+                            </select>
+                        </div>
+
+                        <div class="executive-filter-actions">
+                            <button type="submit" class="btn exec-btn-primary">Apply Filters</button>
+                            <a href="{{ route('executive.dashboard') }}" class="btn exec-btn-outline">Reset</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div class="executive-hero-grid">
             <section class="executive-hero-card">
                 <div class="executive-hero-card-header compact">
                     <h2 class="executive-hero-card-title">Executive KPI Overview</h2>
-                    <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                    <div class="executive-header-actions">
+                        <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                        <a href="{{ route('dashboard') }}#report-kpi-details" class="executive-report-link">View Details</a>
+                    </div>
                 </div>
 
                 <div class="executive-kpi-board-grid">
@@ -1682,13 +1906,48 @@
                         </div>
                     </div>
 
-                    <div class="exec-kpi executive-kpi-card">
+                    <div class="exec-kpi executive-kpi-card latest-customer-sales-card">
                         <div class="exec-kpi-top">
-                            <div class="exec-kpi-icon red">!</div>
-                            <div class="exec-kpi-label">Pending Data Issues</div>
+                            <div class="exec-kpi-icon blue">S</div>
+                            <div>
+                                <div class="exec-kpi-label">Latest Customer Sale</div>
+                                <div class="exec-kpi-sub mt-1">Recent customer sales activity</div>
+                            </div>
                         </div>
-                        <div class="exec-kpi-value">{{ number_format($pendingDataIssues) }}</div>
-                        <div class="exec-kpi-sub">Conflicts plus quality issues</div>
+
+                        @if($latestCustomerSale)
+                            @php
+                                $saleTypeKey = $latestCustomerSale['sales_type_key'] ?? 'brand-new';
+                                $saleBranch = $latestCustomerSale['branch_code']
+                                    ? $latestCustomerSale['branch'] . ' (' . $latestCustomerSale['branch_code'] . ')'
+                                    : $latestCustomerSale['branch'];
+                            @endphp
+
+                            <div class="latest-customer-sale-details">
+                                <div class="latest-customer-sale-name">{{ $latestCustomerSale['customer_name'] }}</div>
+                                <div class="latest-customer-sale-row">
+                                    <span>Branch:</span> {{ $saleBranch }}
+                                </div>
+                                <div class="latest-customer-sale-row">
+                                    <span>Brand:</span> {{ $latestCustomerSale['brand'] }}
+                                </div>
+                                <div class="latest-customer-sale-row">
+                                    <span>Model:</span> {{ $latestCustomerSale['model'] }}
+                                </div>
+
+                                <div class="latest-customer-sale-actions">
+                                    <span class="latest-customer-sale-pill {{ $saleTypeKey }}">{{ $latestCustomerSale['sales_type'] }}</span>
+                                    <a href="{{ route('dashboard') }}#report-latest-sales" class="executive-report-link">View Details</a>
+                                </div>
+                            </div>
+                        @else
+                            <div class="latest-customer-sale-empty">
+                                No latest customer sales available for the selected filters.
+                                <div class="latest-customer-sale-actions">
+                                    <a href="{{ route('dashboard') }}#report-latest-sales" class="executive-report-link">View Details</a>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </section>
@@ -1761,7 +2020,10 @@
             <section class="executive-insight-card">
                 <div class="executive-insight-card-header compact">
                     <h2 class="executive-insight-card-title">Sales Mix</h2>
-                    <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                    <div class="executive-header-actions">
+                        <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                        <a href="{{ route('dashboard') }}#report-sales-mix-detail" class="executive-report-link">View Details</a>
+                    </div>
                 </div>
 
                 <div class="executive-insight-inner-grid">
@@ -1860,7 +2122,10 @@
             <section class="executive-insight-card">
                 <div class="executive-insight-card-header compact">
                     <h2 class="executive-insight-card-title">Product Intelligence</h2>
-                    <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                    <div class="executive-header-actions">
+                        <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                        <a href="{{ route('dashboard') }}#report-product-sales" class="executive-report-link">See Report</a>
+                    </div>
                 </div>
 
                 <div class="executive-insight-inner-grid">
@@ -1931,7 +2196,10 @@
 
                     <div class="exec-section-header compact">
                         <h2 class="exec-section-title">Branch Leaderboard</h2>
-                        <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                        <div class="executive-header-actions">
+                            <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                            <a href="{{ route('dashboard') }}#report-branch-sales" class="executive-report-link">See Report</a>
+                        </div>
                     </div>
 
                     <div class="p-3">
@@ -2061,7 +2329,10 @@
                         <section class="exec-section-card executive-section-card">
                             <div class="exec-section-header compact">
                                 <h2 class="exec-section-title">{{ $reportGroup['title'] ?? 'Sales Report' }}</h2>
-                                <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                                <div class="executive-header-actions">
+                                    <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                                    <a href="{{ route('dashboard') }}#report-cash-installment" class="executive-report-link">See Report</a>
+                                </div>
                             </div>
 
                             <div class="p-3">
@@ -2205,7 +2476,10 @@
                 <section class="exec-section-card executive-section-card customer-intelligence-section">
                     <div class="exec-section-header compact">
                         <h2 class="exec-section-title">Customer Intelligence</h2>
-                        <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                        <div class="executive-header-actions">
+                            <span class="executive-scope-pill">{{ $datePresetLabel }}</span>
+                            <a href="{{ route('dashboard') }}#report-customer" class="executive-report-link">See Report</a>
+                        </div>
                     </div>
 
                     <div class="p-3">
@@ -2255,6 +2529,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const executiveFilterToggle = document.querySelector('[data-executive-filter-toggle]');
+            const executiveFilterPanel = document.querySelector('[data-executive-filter-panel]');
+
+            if (executiveFilterToggle && executiveFilterPanel) {
+                executiveFilterToggle.addEventListener('click', function () {
+                    const isOpen = executiveFilterPanel.classList.toggle('is-open');
+
+                    executiveFilterToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    executiveFilterToggle.textContent = isOpen ? 'Hide Filters' : 'Change Filters';
+                });
+            }
+
             if (typeof Chart === 'undefined') {
                 return;
             }

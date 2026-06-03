@@ -38,13 +38,6 @@ class ExecutiveDashboardController extends Controller
         $cashSales = (clone $transactions)->sum('cash_amount');
         $installmentSales = (clone $transactions)->sum('promissory_note_amount');
 
-        $pendingConflictCount = $this->filteredConflicts($filters, $branchIds)
-            ->where('status', 'pending')
-            ->count();
-
-        $dataQualityIssueCount = $this->filteredImportErrors($filters)->count();
-        $pendingDataIssues = $pendingConflictCount + $dataQualityIssueCount;
-
         $branchLeaderboard = $this->branchLeaderboard($filters, $branchIds, $salesAmountExpression);
 
         $pnTargetUpdates = $this->buildPnTargetUpdates($filters, $branchIds);
@@ -74,6 +67,7 @@ class ExecutiveDashboardController extends Controller
         $executiveChartData = $this->executiveChartData($filters, $branchIds, $salesAmountExpression);
         $cashInstallmentReports = $this->buildCashInstallmentReports($filters, $branchIds);
         $customerIntelligenceKpis = $this->buildCustomerIntelligenceKpis($filters, $branchIds, $salesAmountExpression);
+        $latestCustomerSale = $this->latestCustomerSale($filters, $branchIds);
 
         $businessUnits = BusinessUnit::orderBy('name')->get();
         $branches = Branch::when($filters['business_unit_id'], function ($query) use ($filters) {
@@ -90,7 +84,6 @@ class ExecutiveDashboardController extends Controller
             'unitsSold',
             'cashSales',
             'installmentSales',
-            'pendingDataIssues',
             'branchLeaderboard',
             'pnTargetUpdates',
             'targetAchievement',
@@ -104,7 +97,8 @@ class ExecutiveDashboardController extends Controller
             'productIntelligence',
             'executiveChartData',
             'cashInstallmentReports',
-            'customerIntelligenceKpis'
+            'customerIntelligenceKpis',
+            'latestCustomerSale'
         ));
     }
 
@@ -239,6 +233,37 @@ class ExecutiveDashboardController extends Controller
             ->when($filters['date_to'], function ($query) use ($filters) {
                 $query->whereDate('created_at', '<=', $filters['date_to']);
             });
+    }
+
+    private function latestCustomerSale(array $filters, Collection $branchIds): ?array
+    {
+        $transaction = $this->filteredTransactions($filters, $branchIds)
+            ->with('branch')
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $transaction) {
+            return null;
+        }
+
+        $unitType = strtoupper(trim((string) ($transaction->unit_type ?? '')));
+        $model = $transaction->model
+            ?: ($transaction->product
+                ?: ($transaction->product_description
+                    ?: ($transaction->parts_number ?: '—')));
+
+        return [
+            'customer_name' => $transaction->customer_name ?: 'Unknown Customer',
+            'sales_type' => $unitType === 'REPO' ? 'Repo' : 'Brand New',
+            'sales_type_key' => $unitType === 'REPO' ? 'repo' : 'brand-new',
+            'brand' => $transaction->brand_name_raw ?: '—',
+            'model' => $model,
+            'branch' => $transaction->branch?->display_name
+                ?: ($transaction->branch_name_from_sheet ?: 'Unknown Branch'),
+            'branch_code' => $transaction->branch?->code,
+            'date' => $transaction->invoice_date,
+        ];
     }
 
     private function branchLeaderboard(array $filters, Collection $branchIds, string $salesAmountExpression): Collection
