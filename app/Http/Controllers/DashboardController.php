@@ -18,8 +18,60 @@ class DashboardController extends Controller
     {
         $selectedBusinessUnitId = $request->input('business_unit_id');
         $selectedBranchId = $request->input('branch_id');
+        $datePreset = $request->input('date_preset');
+        $hasExplicitDatePreset = $request->has('date_preset');
+        $hasManualDateFilters = $request->filled('date_from') || $request->filled('date_to');
+        $today = Carbon::today(config('app.timezone'));
+
+        if (! $hasExplicitDatePreset && ! $hasManualDateFilters) {
+            $datePreset = 'this_month';
+        } elseif (! $hasExplicitDatePreset && $hasManualDateFilters) {
+            $datePreset = 'custom';
+        }
+
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+
+        switch ($datePreset) {
+            case 'today':
+                $dateFrom = $today->toDateString();
+                $dateTo = $today->toDateString();
+                break;
+            case 'this_month':
+                $dateFrom = $today->copy()->startOfMonth()->toDateString();
+                $dateTo = $today->toDateString();
+                break;
+            case 'last_month':
+                $lastMonth = $today->copy()->subMonthNoOverflow();
+                $dateFrom = $lastMonth->copy()->startOfMonth()->toDateString();
+                $dateTo = $lastMonth->copy()->endOfMonth()->toDateString();
+                break;
+            case 'year_to_date':
+                $dateFrom = $today->copy()->startOfYear()->toDateString();
+                $dateTo = $today->toDateString();
+                break;
+            case 'all_time':
+                $dateFrom = null;
+                $dateTo = null;
+                break;
+            case 'custom':
+                break;
+            default:
+                $datePreset = 'this_month';
+                $dateFrom = $today->copy()->startOfMonth()->toDateString();
+                $dateTo = $today->toDateString();
+                break;
+        }
+
+        $datePresetLabel = match ($datePreset) {
+            'today' => 'Today',
+            'this_month' => 'This Month',
+            'last_month' => 'Last Month',
+            'year_to_date' => 'Year to Date',
+            'all_time' => 'All Time',
+            'custom' => 'Custom Range',
+            default => 'This Month',
+        };
 
         $branchesQuery = Branch::query();
 
@@ -346,6 +398,12 @@ class DashboardController extends Controller
         $filteredCashAmount = (clone $transactionsBaseQuery)
             ->sum('cash_amount');
 
+        $filteredSalesAmount = (float) ((clone $transactionsBaseQuery)
+            ->selectRaw("SUM($salesAmountExpression) as total_amount")
+            ->value('total_amount') ?? 0);
+
+        $salesMixDetailReport = $this->buildSalesMixDetailReport($transactionsBaseQuery, $salesAmountExpression);
+
         $latestAvailableTransactionDate = (clone $transactionsBaseQuery)
             ->whereNotNull('invoice_date')
             ->max('invoice_date');
@@ -516,23 +574,17 @@ class DashboardController extends Controller
             })
             ->with(['businessUnit', 'location'])
             ->get()
-            ->map(function ($branch) use ($today, $currentMonthStart, $dateFrom, $dateTo) {
-                $todayQuery = SalesTransaction::query()
+            ->map(function ($branch) use ($dateFrom, $dateTo, $onlyFinancialSales, $salesAmountExpression) {
+                $branchSalesQuery = SalesTransaction::query()
                     ->where('branch_id', $branch->id)
-                    ->whereDate('invoice_date', $today);
-
-                $monthToDateQuery = SalesTransaction::query()
-                    ->where('branch_id', $branch->id)
-                    ->whereBetween('invoice_date', [$currentMonthStart, $today]);
+                    ->where($onlyFinancialSales);
 
                 if ($dateFrom) {
-                    $todayQuery->whereDate('invoice_date', '>=', $dateFrom);
-                    $monthToDateQuery->whereDate('invoice_date', '>=', $dateFrom);
+                    $branchSalesQuery->whereDate('invoice_date', '>=', $dateFrom);
                 }
 
                 if ($dateTo) {
-                    $todayQuery->whereDate('invoice_date', '<=', $dateTo);
-                    $monthToDateQuery->whereDate('invoice_date', '<=', $dateTo);
+                    $branchSalesQuery->whereDate('invoice_date', '<=', $dateTo);
                 }
 
                 return (object) [
@@ -540,13 +592,16 @@ class DashboardController extends Controller
                     'branch_code' => $branch->code,
                     'branch_name' => $branch->display_name,
                     'business_unit_name' => $branch->businessUnit->name ?? '-',
-                    'today_transaction_count' => (clone $todayQuery)->count(),
-                    'today_amount' => (clone $todayQuery)->sum('promissory_note_amount'),
-                    'month_to_date_transaction_count' => (clone $monthToDateQuery)->count(),
-                    'month_to_date_amount' => (clone $monthToDateQuery)->sum('promissory_note_amount'),
+                    'transaction_count' => (clone $branchSalesQuery)->count(),
+                    'cash_total' => (clone $branchSalesQuery)->sum('cash_amount'),
+                    'pn_total' => (clone $branchSalesQuery)->sum('promissory_note_amount'),
+                    'total_amount' => (float) ((clone $branchSalesQuery)
+                        ->selectRaw("SUM($salesAmountExpression) as total_amount")
+                        ->value('total_amount') ?? 0),
                 ];
             })
-            ->sortByDesc('month_to_date_amount')
+            ->sortByDesc('total_amount')
+            ->filter(fn ($branch) => $branch->transaction_count > 0)
             ->values();
 
         $applianceCashSummary = Branch::query()
@@ -953,7 +1008,9 @@ class DashboardController extends Controller
             SalesTransaction::select(
                 'branch_id',
                 DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('COALESCE(SUM(promissory_note_amount), 0) as total_amount')
+                DB::raw('COALESCE(SUM(cash_amount), 0) as cash_sales'),
+                DB::raw('COALESCE(SUM(promissory_note_amount), 0) as pn_sales'),
+                DB::raw("SUM($salesAmountExpression) as total_sales")
             )->with('branch')
         )
             ->groupBy('branch_id')
@@ -1008,7 +1065,7 @@ class DashboardController extends Controller
 
         $branchChartLabels = $branchTotals->map(fn ($item) => $item->branch->display_name ?? 'Unknown')->values();
         $branchChartCounts = $branchTotals->map(fn ($item) => (int) $item->transaction_count)->values();
-        $branchChartAmounts = $branchTotals->map(fn ($item) => (float) $item->total_amount)->values();
+        $branchChartAmounts = $branchTotals->map(fn ($item) => (float) $item->total_sales)->values();
 
         $businessUnitChartLabels = $businessUnitTotals->map(fn ($item) => $item->name)->values();
         $businessUnitChartCounts = $businessUnitTotals->map(fn ($item) => (int) $item->transaction_count)->values();
@@ -1049,6 +1106,8 @@ class DashboardController extends Controller
             'filteredTransactionCount',
             'filteredTotalAmount',
             'filteredCashAmount',
+            'filteredSalesAmount',
+            'salesMixDetailReport',
             'latestAvailableTransactionDate',
             'filteredBranchCount',
             'latestImportBatches',
@@ -1068,6 +1127,8 @@ class DashboardController extends Controller
             'branches',
             'selectedBusinessUnitId',
             'selectedBranchId',
+            'datePreset',
+            'datePresetLabel',
             'dateFrom',
             'dateTo',
             'todayTransactionCount',
@@ -1117,5 +1178,228 @@ class DashboardController extends Controller
             'topRepeatCustomerInsight',
             'topPnCustomerInsight',
         ));
+    }
+
+    private function buildSalesMixDetailReport($transactionsBaseQuery, string $salesAmountExpression): array
+    {
+        $cashQuery = (clone $transactionsBaseQuery)->where('cash_amount', '>', 0);
+        $pnQuery = (clone $transactionsBaseQuery)->where('promissory_note_amount', '>', 0);
+        $paymentTotal = (float) (clone $cashQuery)->sum('cash_amount')
+            + (float) (clone $pnQuery)->sum('promissory_note_amount');
+
+        $paymentMix = [
+            $this->buildSalesMixRow(
+                'Cash Sales',
+                $cashQuery,
+                $paymentTotal,
+                'cash_amount',
+                true
+            ),
+            $this->buildSalesMixRow(
+                'PN / Installment Sales',
+                $pnQuery,
+                $paymentTotal,
+                'promissory_note_amount',
+                true
+            ),
+        ];
+
+        $brandNewQuery = (clone $transactionsBaseQuery)->where('unit_type', '!=', 'REPO');
+        $repoQuery = (clone $transactionsBaseQuery)->where('unit_type', 'REPO');
+        $unitStatusTotal = $this->sumSalesMixAmount($brandNewQuery, $salesAmountExpression)
+            + $this->sumSalesMixAmount($repoQuery, $salesAmountExpression);
+
+        $unitStatusMix = [
+            $this->buildSalesMixRow(
+                'Brand New',
+                $brandNewQuery,
+                $unitStatusTotal,
+                null,
+                false,
+                true,
+                true,
+                $salesAmountExpression
+            ),
+            $this->buildSalesMixRow(
+                'Repo',
+                $repoQuery,
+                $unitStatusTotal,
+                null,
+                false,
+                true,
+                true,
+                $salesAmountExpression
+            ),
+        ];
+
+        $productGroupDefinitions = [
+            [
+                'label' => 'Motorcycle',
+                'filter' => fn ($query) => $query->whereRaw("UPPER(TRIM(COALESCE(product_line_name, ''))) = ?", ['MOTORCYCLE']),
+            ],
+            [
+                'label' => 'Appliance / Appliances',
+                'filter' => fn ($query) => $query->whereIn(DB::raw("UPPER(TRIM(COALESCE(product_line_name, '')))"), ['APPLIANCE', 'APPLIANCES']),
+            ],
+            [
+                'label' => 'Furniture',
+                'filter' => fn ($query) => $query->whereRaw("UPPER(TRIM(COALESCE(product_line_name, ''))) = ?", ['FURNITURE']),
+            ],
+            [
+                'label' => 'Bed/Foam',
+                'filter' => fn ($query) => $query->whereIn(DB::raw("UPPER(TRIM(COALESCE(product_line_name, '')))"), ['BED OR FOAM', 'BED FOAM', 'FOAM']),
+            ],
+            [
+                'label' => 'Spare Parts',
+                'filter' => fn ($query) => $query->whereIn(DB::raw("UPPER(TRIM(COALESCE(product_line_name, '')))"), ['SPARE PARTS', 'SPARE PART', 'PARTS']),
+            ],
+            [
+                'label' => 'Needs Classification',
+                'filter' => function ($query) {
+                    $validProductLines = [
+                        'MOTORCYCLE',
+                        'APPLIANCE',
+                        'APPLIANCES',
+                        'FURNITURE',
+                        'BED OR FOAM',
+                        'BED FOAM',
+                        'FOAM',
+                        'SPARE PARTS',
+                        'SPARE PART',
+                        'PARTS',
+                    ];
+
+                    $query->where(function ($classificationQuery) use ($validProductLines) {
+                        $classificationQuery
+                            ->whereNull('product_line_name')
+                            ->orWhereRaw("TRIM(COALESCE(product_line_name, '')) = ''")
+                            ->orWhereNotIn(DB::raw("UPPER(TRIM(COALESCE(product_line_name, '')))"), $validProductLines);
+                    });
+                },
+            ],
+        ];
+
+        $productGroupQueries = collect($productGroupDefinitions)
+            ->map(function ($definition) use ($transactionsBaseQuery) {
+                $query = clone $transactionsBaseQuery;
+                $definition['filter']($query);
+
+                return [
+                    'label' => $definition['label'],
+                    'query' => $query,
+                ];
+            });
+
+        $productGroupTotal = $productGroupQueries
+            ->sum(fn ($group) => $this->sumSalesMixAmount($group['query'], $salesAmountExpression));
+
+        $productGroupMix = $productGroupQueries
+            ->map(function ($group) use ($productGroupTotal, $salesAmountExpression) {
+                return $this->buildSalesMixRow(
+                    $group['label'],
+                    $group['query'],
+                    $productGroupTotal,
+                    null,
+                    false,
+                    true,
+                    true,
+                    $salesAmountExpression
+                );
+            })
+            ->filter(fn ($row) => $row['transactions'] > 0 || $row['amount'] > 0)
+            ->values()
+            ->all();
+
+        return [
+            'payment_mix' => $paymentMix,
+            'unit_status_mix' => $unitStatusMix,
+            'product_group_mix' => $productGroupMix,
+        ];
+    }
+
+    private function buildSalesMixRow(
+        string $label,
+        $query,
+        float $shareTotal,
+        ?string $amountColumn = null,
+        bool $includeTopBranch = false,
+        bool $includeTopBrand = false,
+        bool $includeTopProduct = false,
+        ?string $salesAmountExpression = null
+    ): array {
+        $amount = $amountColumn
+            ? (float) (clone $query)->sum($amountColumn)
+            : $this->sumSalesMixAmount($query, $salesAmountExpression);
+
+        return [
+            'label' => $label,
+            'transactions' => (int) (clone $query)->count(),
+            'amount' => $amount,
+            'share' => $shareTotal > 0 ? ($amount / $shareTotal) * 100 : 0,
+            'top_branch' => $includeTopBranch ? $this->topSalesMixBranch($query, $amountColumn, $salesAmountExpression) : null,
+            'top_brand' => $includeTopBrand ? $this->topSalesMixValue($query, 'brand', $salesAmountExpression) : null,
+            'top_product' => $includeTopProduct ? $this->topSalesMixValue($query, 'product', $salesAmountExpression) : null,
+        ];
+    }
+
+    private function sumSalesMixAmount($query, ?string $salesAmountExpression): float
+    {
+        if (! $salesAmountExpression) {
+            return 0;
+        }
+
+        return (float) ((clone $query)
+            ->selectRaw("SUM($salesAmountExpression) as total_amount")
+            ->value('total_amount') ?? 0);
+    }
+
+    private function topSalesMixBranch($query, ?string $amountColumn, ?string $salesAmountExpression): ?string
+    {
+        $amountSelect = $amountColumn
+            ? "SUM(COALESCE($amountColumn, 0))"
+            : "SUM($salesAmountExpression)";
+
+        $topBranch = (clone $query)
+            ->select('branch_id')
+            ->selectRaw('COUNT(*) as transaction_count')
+            ->selectRaw("$amountSelect as total_amount")
+            ->whereNotNull('branch_id')
+            ->groupBy('branch_id')
+            ->orderByDesc('transaction_count')
+            ->orderByDesc('total_amount')
+            ->first();
+
+        if (! $topBranch) {
+            return null;
+        }
+
+        $branch = Branch::find($topBranch->branch_id);
+
+        return $branch?->display_name ?? $branch?->code ?? 'Branch #' . $topBranch->branch_id;
+    }
+
+    private function topSalesMixValue($query, string $type, string $salesAmountExpression): ?string
+    {
+        $labelExpression = $type === 'brand'
+            ? "UPPER(TRIM(brand_name_raw))"
+            : "UPPER(TRIM(COALESCE(NULLIF(model, ''), NULLIF(product, ''), NULLIF(product_description, ''), NULLIF(parts_number, ''))))";
+
+        $labelRows = (clone $query)
+            ->selectRaw("$labelExpression as label")
+            ->selectRaw("$salesAmountExpression as row_amount")
+            ->whereRaw("$labelExpression IS NOT NULL")
+            ->whereRaw("$labelExpression != ''");
+
+        $topValue = DB::query()
+            ->fromSub($labelRows, 'sales_mix_labels')
+            ->select('label')
+            ->selectRaw('COUNT(*) as transaction_count')
+            ->selectRaw('SUM(row_amount) as total_amount')
+            ->groupBy('label')
+            ->orderByDesc('transaction_count')
+            ->orderByDesc('total_amount')
+            ->first();
+
+        return $topValue?->label;
     }
 }
