@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return Auth::check()
-        ? redirect()->route('dashboard')
+        ? redirect()->route('executive.dashboard')
         : redirect()->route('login');
 });
 
@@ -26,9 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Dashboard
+    | Dashboards
     |--------------------------------------------------------------------------
-    | All valid system roles can access the dashboard.
+    | All valid system roles can access the executive and reporting dashboards.
     */
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:super_admin,admin,importer,viewer')
