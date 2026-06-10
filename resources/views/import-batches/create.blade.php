@@ -1,204 +1,311 @@
 <x-app-layout>
     <style>
-        :root {
-            --summary-blue: #0f3b78;
-            --summary-blue-dark: #0b2f60;
-            --summary-border: #cfd9ea;
-            --summary-bg: #f4f7fb;
-            --summary-card-bg: #ffffff;
-            --summary-text: #162033;
-            --summary-muted: #6b7280;
-            --summary-info-bg: #eaf4ff;
-            --summary-info-text: #175cd3;
-        }
-
         body {
-            background: var(--summary-bg);
+            background: #f4f7fb;
         }
 
-        .summary-shell {
-            max-width: 1400px;
+        .import-create-page {
+            max-width: 1440px;
             margin: 0 auto;
-        }
-
-        .page-with-fixed-nav {
             padding-top: 6.5rem;
+            color: #0f172a;
         }
 
-        .summary-hero {
-            background: linear-gradient(135deg, var(--summary-blue-dark), var(--summary-blue));
-            border-radius: 1.25rem;
-            overflow: hidden;
-            color: #fff;
-            box-shadow: 0 18px 40px rgba(15, 59, 120, 0.12);
-        }
-
-        .summary-hero-title {
-            font-size: 2rem;
+        .import-create-breadcrumb {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .35rem;
+            color: #64748b;
+            font-size: .78rem;
             font-weight: 800;
-            letter-spacing: 0.02em;
+            letter-spacing: .04em;
             text-transform: uppercase;
+            margin-bottom: .7rem;
         }
 
-        .summary-date-box {
-            min-width: 220px;
-            background: rgba(255, 255, 255, 0.10);
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
+        .import-create-breadcrumb a {
+            color: #2563eb;
+            text-decoration: none;
         }
 
-        .summary-date-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            opacity: 0.85;
-            letter-spacing: 0.04em;
+        .import-create-breadcrumb a:hover,
+        .import-create-breadcrumb a:focus {
+            color: #1d4ed8;
+            text-decoration: none;
         }
 
-        .summary-date-value {
-            font-size: 1.35rem;
-            font-weight: 800;
-            margin-top: 0.35rem;
+        .import-create-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.15rem;
         }
 
-        .summary-card {
-            background: var(--summary-card-bg);
-            border: 1px solid var(--summary-border);
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(15, 59, 120, 0.06);
-            overflow: hidden;
-        }
-
-        .summary-section-header {
-            background: var(--summary-blue);
-            color: #fff;
-            padding: 1rem 1.25rem;
-        }
-
-        .summary-section-header h5 {
+        .import-create-title {
             margin: 0;
+            color: #0f172a;
+            font-size: 1.55rem;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .import-create-subtitle {
+            margin: .4rem 0 0;
+            color: #64748b;
+            font-size: .92rem;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .import-create-actions,
+        .import-form-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: .55rem;
+        }
+
+        .import-create-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            border-radius: 999px;
+            padding: .58rem 1rem;
+            font-size: .84rem;
+            font-weight: 900;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+        }
+
+        .import-create-btn-primary {
+            color: #ffffff;
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
+        }
+
+        .import-create-btn-primary:hover,
+        .import-create-btn-primary:focus {
+            color: #ffffff;
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .import-create-btn-secondary {
+            color: #334155;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.14);
+        }
+
+        .import-create-btn-secondary:hover,
+        .import-create-btn-secondary:focus {
+            color: #0f172a;
+            background: #f8fafc;
+            border-color: rgba(15, 23, 42, 0.22);
+            text-decoration: none;
+        }
+
+        .import-create-btn:active {
+            transform: translateY(0);
+        }
+
+        .import-create-alert,
+        .import-create-errors {
+            border-radius: 1rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+            padding: .9rem 1rem;
             font-weight: 800;
-            text-transform: uppercase;
-            font-size: 1rem;
-            letter-spacing: 0.02em;
+            margin-bottom: 1rem;
         }
 
-        .summary-section-subtitle {
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 0.88rem;
-            margin-top: 0.25rem;
+        .import-create-alert {
+            background: #ecfdf5;
+            border: 1px solid rgba(34, 197, 94, 0.22);
+            color: #166534;
         }
 
-        .summary-stat {
-            background: #fff;
-            border: 1px solid var(--summary-border);
-            border-radius: 0.9rem;
+        .import-create-errors {
+            background: #fef2f2;
+            border: 1px solid rgba(239, 68, 68, 0.22);
+            color: #991b1b;
+        }
+
+        .import-create-errors ul {
+            margin: .35rem 0 0;
+            padding-left: 1.1rem;
+            font-weight: 700;
+        }
+
+        .import-create-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(320px, .75fr);
+            gap: 1.15rem;
+            align-items: start;
+        }
+
+        .import-upload-card,
+        .import-helper-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 1rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+        }
+
+        .import-create-card-header {
             padding: 1rem 1.1rem;
-            height: 100%;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         }
 
-        .summary-stat-label {
-            color: var(--summary-muted);
-            font-size: 0.8rem;
+        .import-create-card-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .import-create-card-subtitle {
+            margin: .25rem 0 0;
+            color: #64748b;
+            font-size: .82rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .import-create-form {
+            padding: 1.1rem;
+        }
+
+        .import-create-field {
+            margin-bottom: 1rem;
+        }
+
+        .import-create-label {
+            display: block;
+            color: #334155;
+            font-size: .76rem;
+            font-weight: 900;
+            letter-spacing: .04em;
             text-transform: uppercase;
+            margin-bottom: .45rem;
+        }
+
+        .import-create-input,
+        .import-create-textarea {
+            width: 100%;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: .85rem;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: .9rem;
             font-weight: 700;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.35rem;
-        }
-
-        .summary-stat-value {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--summary-text);
-            line-height: 1.2;
-        }
-
-        .summary-stat-sub {
-            color: var(--summary-muted);
-            font-size: 0.85rem;
-            margin-top: 0.35rem;
-        }
-
-        .form-panel {
-            padding: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: 700;
-            color: var(--summary-text);
-            margin-bottom: 0.45rem;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 0.85rem;
-            border: 1px solid var(--summary-border);
-            padding: 0.8rem 0.95rem;
+            padding: .72rem .85rem;
             box-shadow: none;
         }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #7aa7e8;
-            box-shadow: 0 0 0 0.2rem rgba(15, 59, 120, 0.08);
+        .import-create-input:focus,
+        .import-create-textarea:focus {
+            border-color: rgba(37, 99, 235, 0.45);
+            box-shadow: 0 0 0 .2rem rgba(37, 99, 235, 0.08);
+            outline: 0;
         }
 
-        .upload-dropzone {
-            border: 2px dashed #9dbce8;
+        .import-upload-zone {
+            border: 2px dashed rgba(37, 99, 235, 0.28);
             border-radius: 1rem;
-            background: #f8fbff;
-            padding: 1.5rem;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            padding: 1.2rem;
         }
 
-        .upload-dropzone-title {
+        .import-upload-zone-title {
+            color: #0f172a;
             font-size: 1rem;
+            font-weight: 900;
+            margin-bottom: .25rem;
+        }
+
+        .import-upload-zone-text {
+            color: #64748b;
+            font-size: .85rem;
+            font-weight: 600;
+            line-height: 1.45;
+            margin-bottom: .85rem;
+        }
+
+        .import-upload-zone .import-create-input {
+            background: #ffffff;
+        }
+
+        .import-create-help {
+            color: #64748b;
+            font-size: .78rem;
+            font-weight: 600;
+            line-height: 1.45;
+            margin-top: .4rem;
+        }
+
+        .import-create-error {
+            display: block;
+            margin-top: .4rem;
+            color: #dc2626;
+            font-size: .8rem;
             font-weight: 800;
-            color: var(--summary-blue);
-            margin-bottom: 0.35rem;
         }
 
-        .upload-dropzone-sub {
-            color: var(--summary-muted);
-            font-size: 0.9rem;
-            margin-bottom: 0.9rem;
+        .import-helper-stack {
+            display: grid;
+            gap: .9rem;
         }
 
-        .helper-box {
-            background: var(--summary-info-bg);
-            color: var(--summary-info-text);
-            border: 1px solid #cfe1ff;
-            border-radius: 0.9rem;
-            padding: 1rem 1.1rem;
+        .import-helper-card {
+            padding: 1rem;
         }
 
-        .helper-box-title {
-            font-weight: 800;
+        .import-helper-label {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .04em;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            margin-bottom: 0.45rem;
         }
 
-        .helper-box ul {
-            margin: 0;
-            padding-left: 1.1rem;
+        .import-helper-title {
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 900;
+            margin-top: .35rem;
         }
 
-        .helper-box li {
-            margin-bottom: 0.3rem;
+        .import-helper-text {
+            color: #64748b;
+            font-size: .84rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin: .45rem 0 0;
         }
 
-        .btn-summary-primary {
-            background: var(--summary-blue);
-            border-color: var(--summary-blue);
-            color: #fff;
-            border-radius: 999px;
+        .import-helper-list {
+            margin: .65rem 0 0;
+            padding-left: 1.05rem;
+            color: #475569;
+            font-size: .84rem;
             font-weight: 700;
-            padding: 0.7rem 1.2rem;
+            line-height: 1.5;
         }
 
         .page-loading-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 59, 120, 0.28);
+            background: rgba(15, 23, 42, 0.28);
             backdrop-filter: blur(3px);
             z-index: 9999;
             display: flex;
@@ -213,9 +320,9 @@
         .page-loading-box {
             width: min(92vw, 420px);
             background: #ffffff;
-            border: 1px solid #cfd9ea;
+            border: 1px solid rgba(15, 23, 42, 0.08);
             border-radius: 1.25rem;
-            box-shadow: 0 24px 60px rgba(15, 59, 120, 0.18);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
             padding: 2rem 1.5rem;
             text-align: center;
         }
@@ -224,24 +331,24 @@
             width: 56px;
             height: 56px;
             margin: 0 auto 1rem;
-            border: 5px solid #d9e6f7;
-            border-top-color: #0f3b78;
+            border: 5px solid #dbeafe;
+            border-top-color: #2563eb;
             border-radius: 50%;
             animation: pageSpin 0.9s linear infinite;
         }
 
         .page-loading-title {
+            color: #0f172a;
             font-size: 1.1rem;
-            font-weight: 800;
-            color: #162033;
-            margin-bottom: 0.35rem;
+            font-weight: 900;
+            margin-bottom: .35rem;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: .03em;
         }
 
         .page-loading-text {
-            color: #6b7280;
-            font-size: 0.95rem;
+            color: #64748b;
+            font-size: .95rem;
             line-height: 1.5;
         }
 
@@ -255,232 +362,215 @@
             }
         }
 
-        .btn-summary-primary:hover {
-            background: var(--summary-blue-dark);
-            border-color: var(--summary-blue-dark);
-            color: #fff;
-        }
-
-        .btn-summary-outline {
-            border-radius: 999px;
-            font-weight: 700;
-            padding: 0.7rem 1.2rem;
-        }
-
-        .text-danger.small {
-            display: block;
-            margin-top: 0.4rem;
-        }
-        
-
         @media (max-width: 991.98px) {
-            .summary-hero-title {
-                font-size: 1.6rem;
+            .import-create-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .import-create-page {
+                padding-top: 5.75rem;
             }
 
-            .summary-date-box {
-                min-width: 100%;
-                border-left: 0;
-                border-top: 1px solid rgba(255, 255, 255, 0.15);
+            .import-create-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .import-create-actions,
+            .import-form-actions {
+                width: 100%;
+            }
+
+            .import-create-actions .import-create-btn,
+            .import-form-actions .import-create-btn,
+            .import-form-actions button {
+                width: 100%;
             }
         }
     </style>
 
-    <div class="summary-shell page-with-fixed-nav px-3 px-md-4 py-4">
-        <div class="mb-4">
-            <div class="summary-hero d-flex flex-column flex-lg-row justify-content-between align-items-stretch">
-                <div class="flex-grow-1 p-4 p-lg-5">
-                    <div class="summary-hero-title">Upload Import File</div>
-                    <div class="mt-2 text-white-50">
-                        Upload an Excel or CSV file, define the source, and prepare the batch for processing.
-                    </div>
-                </div>
+    <div class="import-create-page px-3 px-md-4 py-4">
+        @if(session('success'))
+            <div class="import-create-alert">
+                {{ session('success') }}
+            </div>
+        @endif
 
-                <div class="summary-date-box d-flex flex-column justify-content-center align-items-center px-4 py-4">
-                    <div class="summary-date-label">Date</div>
-                    <div class="summary-date-value">{{ now()->format('F d, Y') }}</div>
-                </div>
+        @if($errors->any())
+            <div class="import-create-errors">
+                Please review the highlighted upload details.
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="import-create-breadcrumb">
+            <a href="{{ route('import-batches.index') }}">Import Batches</a>
+            <span>/</span>
+            <span>Upload File</span>
+        </div>
+
+        <div class="import-create-header">
+            <div>
+                <h1 class="import-create-title">Upload Import File</h1>
+                <p class="import-create-subtitle">
+                    Upload a consolidated sales workbook and prepare it for batch processing.
+                </p>
+            </div>
+
+            <div class="import-create-actions">
+                <a href="{{ route('import-batches.index') }}" class="import-create-btn import-create-btn-secondary">
+                    Back to Import Batches
+                </a>
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Accepted Files</div>
-                    <div class="summary-stat-value">Excel / CSV</div>
-                    <div class="summary-stat-sub">Upload spreadsheet files for batch processing</div>
+        <div class="import-create-layout">
+            <section class="import-upload-card">
+                <div class="import-create-card-header">
+                    <h2 class="import-create-card-title">Upload Form</h2>
+                    <p class="import-create-card-subtitle">
+                        Select the source workbook, confirm the source type, and add optional batch notes.
+                    </p>
                 </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Default Source Type</div>
-                    <div class="summary-stat-value">Manual Upload</div>
-                    <div class="summary-stat-sub">Can be changed before saving the batch</div>
-                </div>
-            </div>
+                <form action="{{ route('import-batches.store') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    data-loading="true"
+                    data-loading-message="Uploading and preparing the import batch. Please wait..."
+                    class="import-create-form">
+                    @csrf
 
-            <div class="col-md-4">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Next Step</div>
-                    <div class="summary-stat-value">Parse Sheets</div>
-                    <div class="summary-stat-sub">After upload, review and parse supported transaction sheets</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="summary-card">
-                    <div class="summary-section-header">
-                        <h5>Import Upload Form</h5>
-                        <div class="summary-section-subtitle">
-                            Provide the source file and optional notes for this import batch.
+                    <div class="import-create-field">
+                        <label for="import_file" class="import-create-label">Import File</label>
+                        <div class="import-upload-zone">
+                            <div class="import-upload-zone-title">Choose a workbook or CSV file</div>
+                            <div class="import-upload-zone-text">
+                                Keep the original consolidated sales file intact so the import processor can detect supported sheets.
+                            </div>
+                            <input type="file" name="import_file" id="import_file" class="import-create-input" required>
                         </div>
+                        <div class="import-create-help">
+                            Use the existing branch import workbook or CSV format. The file will be processed by the current import workflow.
+                        </div>
+                        @error('import_file')
+                            <span class="import-create-error">{{ $message }}</span>
+                        @enderror
                     </div>
 
-                    <div class="form-panel">
-                        <form action="{{ route('import-batches.store') }}"
-                            method="POST"
-                            enctype="multipart/form-data"
-                            data-loading="true"
-                            data-loading-message="Uploading and preparing the import batch. Please wait...">
-                            @csrf
-
-                            <div class="mb-4">
-                                <label for="import_file" class="form-label">Import File</label>
-                                <div class="upload-dropzone">
-                                    <div class="upload-dropzone-title">Choose file to upload</div>
-                                    <div class="upload-dropzone-sub">
-                                        Supported file types include Excel and CSV formats used by your branch import workflow.
-                                    </div>
-                                    <input type="file" name="import_file" id="import_file" class="form-control" required>
-                                </div>
-                                @error('import_file')
-                                    <div class="text-danger small">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="source_type" class="form-label">Source Type</label>
-                                <input
-                                    type="text"
-                                    name="source_type"
-                                    id="source_type"
-                                    class="form-control"
-                                    value="{{ old('source_type', 'manual_upload') }}"
-                                >
-                                @error('source_type')
-                                    <div class="text-danger small">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="notes" class="form-label">Notes</label>
-                                <textarea
-                                    name="notes"
-                                    id="notes"
-                                    rows="4"
-                                    class="form-control"
-                                    placeholder="Add optional remarks about this upload batch..."
-                                >{{ old('notes') }}</textarea>
-                                @error('notes')
-                                    <div class="text-danger small">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="submit" class="btn btn-summary-primary">Upload File</button>
-                                <a href="{{ route('import-batches.index') }}" class="btn btn-outline-secondary btn-summary-outline">
-                                    Cancel
-                                </a>
-                            </div>
-                        </form>
+                    <div class="import-create-field">
+                        <label for="source_type" class="import-create-label">Source Type</label>
+                        <input
+                            type="text"
+                            name="source_type"
+                            id="source_type"
+                            class="import-create-input"
+                            value="{{ old('source_type', 'manual_upload') }}"
+                        >
+                        <div class="import-create-help">
+                            Leave as manual_upload unless this batch came from a different approved source.
+                        </div>
+                        @error('source_type')
+                            <span class="import-create-error">{{ $message }}</span>
+                        @enderror
                     </div>
-                </div>
-            </div>
 
-            <div class="col-lg-4">
-                <div class="helper-box mb-4">
-                    <div class="helper-box-title">Upload Guidance</div>
-                    <ul>
-                        <li>Use the correct branch file format before uploading.</li>
-                        <li>Review source type to match the upload origin.</li>
-                        <li>Add notes when the batch needs special review.</li>
-                        <li>After upload, inspect detected sheets and parsing results.</li>
+                    <div class="import-create-field">
+                        <label for="notes" class="import-create-label">Notes</label>
+                        <textarea
+                            name="notes"
+                            id="notes"
+                            rows="4"
+                            class="import-create-textarea"
+                            placeholder="Add optional remarks about this upload batch..."
+                        >{{ old('notes') }}</textarea>
+                        @error('notes')
+                            <span class="import-create-error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="import-form-actions">
+                        <button type="submit" class="import-create-btn import-create-btn-primary">Upload File</button>
+                        <a href="{{ route('import-batches.index') }}" class="import-create-btn import-create-btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="import-helper-stack">
+                <article class="import-helper-card">
+                    <div class="import-helper-label">Import Guidelines</div>
+                    <div class="import-helper-title">Before uploading</div>
+                    <ul class="import-helper-list">
+                        <li>Use the approved consolidated sales workbook or CSV export.</li>
+                        <li>Do not rename or remove sheets that the parser expects.</li>
+                        <li>Upload one source file per import batch.</li>
                     </ul>
-                </div>
+                </article>
 
-                <div class="summary-card">
-                    <div class="summary-section-header">
-                        <h5>What Happens Next</h5>
-                        <div class="summary-section-subtitle">
-                            Expected workflow after the file is uploaded.
-                        </div>
-                    </div>
+                <article class="import-helper-card">
+                    <div class="import-helper-label">Important Note</div>
+                    <div class="import-helper-title">Review before parsing</div>
+                    <p class="import-helper-text">
+                        After upload, review detected sheets and batch details before running parse actions. Existing conflict checks and import safeguards still apply.
+                    </p>
+                </article>
 
-                    <div class="form-panel">
-                        <div class="summary-stat mb-3">
-                            <div class="summary-stat-label">Step 1</div>
-                            <div class="summary-stat-value">Batch Created</div>
-                            <div class="summary-stat-sub">The uploaded file is stored and registered as an import batch.</div>
-                        </div>
+                <article class="import-helper-card">
+                    <div class="import-helper-label">Supported Format</div>
+                    <div class="import-helper-title">Workbook or CSV</div>
+                    <p class="import-helper-text">
+                        This page only collects the file and batch notes. File validation, parsing, and conflict handling are still handled by the existing backend workflow.
+                    </p>
+                </article>
+            </aside>
+        </div>
+    </div>
 
-                        <div class="summary-stat mb-3">
-                            <div class="summary-stat-label">Step 2</div>
-                            <div class="summary-stat-value">Sheets Reviewed</div>
-                            <div class="summary-stat-sub">Detected sheets can be previewed and checked before parsing.</div>
-                        </div>
-
-                        <div class="summary-stat">
-                            <div class="summary-stat-label">Step 3</div>
-                            <div class="summary-stat-value">Transactions Parsed</div>
-                            <div class="summary-stat-sub">Supported transaction sheets are parsed into the monitoring system.</div>
-                        </div>
-                    </div>
-                </div>
+    <div id="pageLoadingOverlay" class="page-loading-overlay d-none">
+        <div class="page-loading-box">
+            <div class="page-loading-spinner"></div>
+            <div class="page-loading-title">Processing Request</div>
+            <div class="page-loading-text">
+                Please wait while the system uploads and processes the file.
             </div>
         </div>
     </div>
 
-        <div id="pageLoadingOverlay" class="page-loading-overlay d-none">
-            <div class="page-loading-box">
-                <div class="page-loading-spinner"></div>
-                <div class="page-loading-title">Processing Request</div>
-                <div class="page-loading-text">
-                    Please wait while the system uploads and processes the file.
-                </div>
-            </div>
-        </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const overlay = document.getElementById('pageLoadingOverlay');
 
+            function showLoading(message = null) {
+                if (!overlay) return;
 
-        <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const overlay = document.getElementById('pageLoadingOverlay');
+                if (message) {
+                    const text = overlay.querySelector('.page-loading-text');
+                    if (text) text.textContent = message;
+                }
 
-        function showLoading(message = null) {
-            if (!overlay) return;
-
-            if (message) {
-                const text = overlay.querySelector('.page-loading-text');
-                if (text) text.textContent = message;
+                overlay.classList.remove('d-none');
+                document.body.classList.add('loading-active');
             }
 
-            overlay.classList.remove('d-none');
-            document.body.classList.add('loading-active');
-        }
+            document.querySelectorAll('form[data-loading="true"]').forEach(form => {
+                form.addEventListener('submit', function () {
+                    const message = form.getAttribute('data-loading-message');
+                    showLoading(message);
 
-        document.querySelectorAll('form[data-loading="true"]').forEach(form => {
-            form.addEventListener('submit', function () {
-                const message = form.getAttribute('data-loading-message');
-                showLoading(message);
-
-                const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-                submitButtons.forEach(btn => {
-                    btn.disabled = true;
+                    const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                    submitButtons.forEach(btn => {
+                        btn.disabled = true;
+                    });
                 });
             });
         });
-    });
-</script>
+    </script>
 </x-app-layout>
