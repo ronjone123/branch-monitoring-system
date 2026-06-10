@@ -47,9 +47,28 @@ class SalesTransactionController extends Controller
             ->latest()
             ->get();
 
+        $customerPurchaseHistory = SalesTransaction::query()
+            ->with('branch')
+            ->whereKeyNot($salesTransaction->id)
+            ->when(filled($salesTransaction->account_number), function ($query) use ($salesTransaction) {
+                $query->where('account_number', $salesTransaction->account_number);
+            }, function ($query) use ($salesTransaction) {
+                $query->when(filled($salesTransaction->customer_name), function ($customerQuery) use ($salesTransaction) {
+                    $customerQuery->where('customer_name', $salesTransaction->customer_name);
+                }, function ($customerQuery) {
+                    $customerQuery->whereRaw('1 = 0');
+                });
+            })
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get();
+
         return view('sales-transactions.show', [
             'salesTransaction' => $salesTransaction,
             'relatedConflicts' => $relatedConflicts,
+            'customerPurchaseHistory' => $customerPurchaseHistory,
         ]);
     }
 
