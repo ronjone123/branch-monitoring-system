@@ -1,633 +1,900 @@
 <x-app-layout>
     <style>
-        :root {
-            --summary-blue: #0f3b78;
-            --summary-blue-dark: #0b2f60;
-            --summary-border: #cfd9ea;
-            --summary-bg: #f4f7fb;
-            --summary-card-bg: #ffffff;
-            --summary-text: #162033;
-            --summary-muted: #6b7280;
-
-            --summary-success-bg: #eaf7ee;
-            --summary-success-text: #1f7a3d;
-
-            --summary-warning-bg: #fff8e6;
-            --summary-warning-text: #b7791f;
-
-            --summary-danger-bg: #fdecec;
-            --summary-danger-text: #b42318;
-
-            --summary-info-bg: #eaf4ff;
-            --summary-info-text: #175cd3;
-
-            --summary-secondary-bg: #eef2f7;
-            --summary-secondary-text: #475467;
-        }
-
-        body {
-            background: var(--summary-bg);
-        }
-
-        .summary-shell {
+        .transaction-show-page {
             max-width: 1600px;
             margin: 0 auto;
-        }
-
-        .page-with-fixed-nav {
             padding-top: 6.5rem;
+            color: #0f172a;
         }
 
-        .summary-hero {
-            background: linear-gradient(135deg, var(--summary-blue-dark), var(--summary-blue));
-            border-radius: 1.25rem;
-            overflow: hidden;
-            color: #fff;
-            box-shadow: 0 18px 40px rgba(15, 59, 120, 0.12);
+        .transaction-profile-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.15rem;
         }
 
-        .summary-hero-title {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
+        .transaction-page-kicker {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .04em;
             text-transform: uppercase;
+            margin-bottom: .35rem;
         }
 
-        .summary-date-box {
-            min-width: 240px;
-            background: rgba(255, 255, 255, 0.10);
-            border-left: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .summary-date-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            opacity: 0.85;
-            letter-spacing: 0.04em;
-        }
-
-        .summary-date-value {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-top: 0.35rem;
-            text-align: center;
-        }
-
-        .summary-card {
-            background: var(--summary-card-bg);
-            border: 1px solid var(--summary-border);
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(15, 59, 120, 0.06);
-            overflow: hidden;
-        }
-
-        .summary-section-header {
-            background: var(--summary-blue);
-            color: #fff;
-            padding: 1rem 1.25rem;
-        }
-
-        .summary-section-header h5 {
+        .transaction-page-title {
             margin: 0;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 1rem;
-            letter-spacing: 0.02em;
+            color: #0f172a;
+            font-size: 1.55rem;
+            font-weight: 900;
+            line-height: 1.15;
         }
 
-        .summary-section-subtitle {
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 0.88rem;
-            margin-top: 0.25rem;
+        .transaction-page-subtitle {
+            margin: .4rem 0 0;
+            color: #64748b;
+            font-size: .9rem;
+            font-weight: 600;
+            line-height: 1.45;
         }
 
-        .summary-stat {
-            background: #fff;
-            border: 1px solid var(--summary-border);
-            border-radius: 0.9rem;
-            padding: 1rem 1.1rem;
-            height: 100%;
+        .transaction-page-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: .55rem;
         }
 
-        .summary-stat-label {
-            color: var(--summary-muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.35rem;
-        }
-
-        .summary-stat-value {
-            font-size: 1.45rem;
-            font-weight: 800;
-            color: var(--summary-text);
-            line-height: 1.1;
-        }
-
-        .summary-stat-sub {
-            color: var(--summary-muted);
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
-
-        .detail-list {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.9rem 1rem;
-        }
-
-        .detail-item {
-            border: 1px solid var(--summary-border);
-            border-radius: 0.85rem;
-            padding: 0.85rem 0.95rem;
-            background: #fff;
-        }
-
-        .detail-label {
-            font-size: 0.76rem;
-            font-weight: 800;
-            color: var(--summary-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.3rem;
-        }
-
-        .detail-value {
-            font-size: 0.96rem;
-            font-weight: 700;
-            color: var(--summary-text);
-            word-break: break-word;
-        }
-
-        .soft-badge {
+        .transaction-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.42rem 0.75rem;
+            min-height: 42px;
             border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
+            padding: .58rem 1rem;
+            font-size: .84rem;
+            font-weight: 900;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
         }
 
-        .soft-badge.success {
-            background: var(--summary-success-bg);
-            color: var(--summary-success-text);
+        .transaction-btn-primary {
+            color: #ffffff;
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
         }
 
-        .soft-badge.warning {
-            background: var(--summary-warning-bg);
-            color: var(--summary-warning-text);
+        .transaction-btn-primary:hover,
+        .transaction-btn-primary:focus {
+            color: #ffffff;
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            text-decoration: none;
+            transform: translateY(-1px);
         }
 
-        .soft-badge.info {
-            background: var(--summary-info-bg);
-            color: var(--summary-info-text);
+        .transaction-btn-secondary {
+            color: #334155;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.14);
         }
 
-        .soft-badge.secondary {
-            background: var(--summary-secondary-bg);
-            color: var(--summary-secondary-text);
+        .transaction-btn-secondary:hover,
+        .transaction-btn-secondary:focus {
+            color: #0f172a;
+            background: #f8fafc;
+            border-color: rgba(15, 23, 42, 0.22);
+            text-decoration: none;
         }
 
-        .btn-summary-primary {
-            background: var(--summary-blue);
-            border-color: var(--summary-blue);
-            color: #fff;
-            border-radius: 999px;
-            font-weight: 700;
-            padding: 0.7rem 1.2rem;
+        .transaction-btn:active {
+            transform: translateY(0);
         }
 
-        .btn-summary-primary:hover {
-            background: var(--summary-blue-dark);
-            border-color: var(--summary-blue-dark);
-            color: #fff;
-        }
-
-        .btn-summary-outline {
-            border-radius: 999px;
-            font-weight: 700;
-            padding: 0.7rem 1.2rem;
-        }
-
-        .conflict-item {
-            border: 1px solid var(--summary-border);
-            border-radius: 0.95rem;
-            padding: 1rem;
-            background: #fff;
-        }
-
-        .money-highlight {
-            background: #f8fbff;
-            border: 1px solid #dce8fa;
+        .transaction-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
             border-radius: 1rem;
-            padding: 1rem;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
         }
 
-        .money-highlight-label {
-            font-size: 0.8rem;
-            font-weight: 800;
+        .transaction-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .8rem;
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .transaction-card-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .transaction-card-subtitle {
+            margin: .25rem 0 0;
+            color: #64748b;
+            font-size: .82rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .transaction-hero-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1.15rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .transaction-avatar {
+            width: 64px;
+            height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.10);
+            border: 1px solid rgba(37, 99, 235, 0.18);
+            font-size: 1.35rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .transaction-customer-name {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.45rem;
+            font-weight: 900;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        .transaction-hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem .85rem;
+            margin-top: .55rem;
+            color: #64748b;
+            font-size: .84rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .transaction-hero-meta strong {
+            color: #334155;
+            font-weight: 900;
+        }
+
+        .transaction-badge-stack {
+            display: flex;
+            align-items: flex-end;
+            flex-direction: column;
+            gap: .4rem;
+        }
+
+        .transaction-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: .32rem .65rem;
+            font-size: .7rem;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
             text-transform: uppercase;
-            color: var(--summary-muted);
-            margin-bottom: 0.3rem;
+            letter-spacing: .03em;
         }
 
-        .money-highlight-value {
-            font-size: 1.8rem;
+        .transaction-badge-blue {
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.10);
+            border: 1px solid rgba(37, 99, 235, 0.20);
+        }
+
+        .transaction-badge-green {
+            color: #166534;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.22);
+        }
+
+        .transaction-badge-amber {
+            color: #92400e;
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .transaction-badge-slate {
+            color: #475569;
+            background: rgba(100, 116, 139, 0.10);
+            border: 1px solid rgba(100, 116, 139, 0.18);
+        }
+
+        .transaction-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: .85rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .transaction-kpi-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 1rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+            padding: .95rem;
+            min-width: 0;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .transaction-kpi-card.blue {
+            border-left-color: #6366f1;
+        }
+
+        .transaction-kpi-card.green {
+            border-left-color: #22c55e;
+        }
+
+        .transaction-kpi-card.sky {
+            border-left-color: #0ea5e9;
+        }
+
+        .transaction-kpi-card.purple {
+            border-left-color: #8b5cf6;
+        }
+
+        .transaction-kpi-card.cyan {
+            border-left-color: #06b6d4;
+        }
+
+        .transaction-kpi-card.orange {
+            border-left-color: #f97316;
+        }
+
+        .transaction-kpi-label {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .transaction-kpi-value {
+            color: #0f172a;
+            font-size: 1.08rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-top: .45rem;
+            word-break: break-word;
+        }
+
+        .transaction-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .transaction-info-card {
+            min-width: 0;
+        }
+
+        .transaction-field-list {
+            display: grid;
+            gap: .65rem;
+            padding: 1rem 1.1rem 1.1rem;
+        }
+
+        .transaction-field-row {
+            display: grid;
+            grid-template-columns: minmax(130px, .55fr) minmax(0, 1fr);
+            gap: .85rem;
+            align-items: start;
+            padding-bottom: .65rem;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .transaction-field-row:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .transaction-field-label {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .transaction-field-value {
+            color: #0f172a;
+            font-size: .9rem;
             font-weight: 800;
-            color: var(--summary-text);
-            line-height: 1.1;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .transaction-money {
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .transaction-related-card {
+            margin-top: 1rem;
+        }
+
+        .transaction-history-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .transaction-history-table {
+            width: 100%;
+            min-width: 980px;
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .transaction-history-table thead th {
+            background: #f3f4f6;
+            color: #111827;
+            border-bottom: 1px solid #e5e7eb;
+            padding: .78rem .75rem;
+            font-size: .7rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .transaction-history-table tbody td {
+            padding: .78rem .75rem;
+            border-bottom: 1px solid #eef2f7;
+            color: #0f172a;
+            font-size: .84rem;
+            vertical-align: middle;
+        }
+
+        .transaction-history-table tbody tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        .transaction-history-table tbody tr.current td {
+            background: rgba(37, 99, 235, 0.06);
+        }
+
+        .transaction-history-product {
+            max-width: 220px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 900;
+        }
+
+        .transaction-history-actions {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .transaction-conflict-list {
+            display: grid;
+            gap: .55rem;
+            padding: .8rem .95rem .95rem;
+        }
+
+        .transaction-conflict-item {
+            display: grid;
+            grid-template-columns: minmax(80px, auto) minmax(0, 1fr) auto;
+            gap: .75rem;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            border-radius: .75rem;
+            padding: .7rem .8rem;
+        }
+
+        .transaction-conflict-title {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: .65rem;
+            color: #0f172a;
+            font-size: .85rem;
+            font-weight: 900;
+        }
+
+        .transaction-conflict-meta {
+            color: #64748b;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .transaction-empty-state {
+            padding: 2rem 1.1rem;
+            text-align: center;
+            color: #64748b;
+            font-size: .9rem;
+            font-weight: 700;
+        }
+
+        .transaction-audit-card {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045);
+        }
+
+        .transaction-audit-card .transaction-card-header {
+            padding: .85rem .95rem;
+        }
+
+        .transaction-audit-panel {
+            display: none;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            background: #f8fafc;
+        }
+
+        .transaction-audit-panel.is-open {
+            display: block;
+        }
+
+        .transaction-audit-toggle {
+            min-height: 36px;
+            padding: .45rem .8rem;
+            font-size: .76rem;
+        }
+
+        @media (max-width: 1199.98px) {
+            .transaction-kpi-strip {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 991.98px) {
-            .summary-hero-title {
-                font-size: 1.55rem;
-            }
-
-            .summary-date-box {
-                min-width: 100%;
-                border-left: 0;
-                border-top: 1px solid rgba(255, 255, 255, 0.15);
-            }
-
-            .detail-list {
+            .transaction-info-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .transaction-show-page {
+                padding-top: 5.75rem;
+            }
+
+            .transaction-profile-header,
+            .transaction-hero-card,
+            .transaction-card-header {
+                align-items: stretch;
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+
+            .transaction-page-actions,
+            .transaction-badge-stack {
+                align-items: stretch;
+                width: 100%;
+            }
+
+            .transaction-page-actions .transaction-btn {
+                width: 100%;
+            }
+
+            .transaction-kpi-strip,
+            .transaction-conflict-list {
+                grid-template-columns: 1fr;
+            }
+
+            .transaction-conflict-item {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
+            .transaction-field-row {
+                grid-template-columns: 1fr;
+                gap: .25rem;
             }
         }
     </style>
 
-    <div class="summary-shell page-with-fixed-nav px-3 px-md-4 py-4">
-        <div class="mb-4">
-            <div class="summary-hero d-flex flex-column flex-lg-row justify-content-between align-items-stretch">
-                <div class="flex-grow-1 p-4 p-lg-5">
-                    <div class="summary-hero-title">Sales Transaction Record</div>
-                    <div class="mt-2 text-white-50">
-                        Review customer, product, financial, import, and conflict details for this transaction.
-                    </div>
+    @php
+        $dash = '—';
+        $money = fn ($value) => $value !== null ? '&#8369;' . number_format((float) $value, 2) : $dash;
+        $date = fn ($value, $format = 'M d, Y') => $value ? \Carbon\Carbon::parse($value)->format($format) : $dash;
+        $value = fn ($value) => filled($value) ? $value : $dash;
+        $unitType = strtoupper(trim((string) ($salesTransaction->unit_type ?? '')));
+        $isRepo = in_array($unitType, ['REPO', 'REPOSSESSED', 'REPOSSESSION'], true);
+        $unitTypeLabel = $isRepo ? 'Repo' : ($salesTransaction->unit_type ?: 'Brand New');
+        $unitTypeBadgeClass = $isRepo ? 'transaction-badge-amber' : 'transaction-badge-green';
+        $initials = collect(explode(' ', trim((string) ($salesTransaction->customer_name ?: 'Customer'))))
+            ->filter()
+            ->take(2)
+            ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
+            ->implode('');
+        $productTitle = $salesTransaction->model
+            ?: ($salesTransaction->product
+                ?: ($salesTransaction->product_description
+                    ?: ($salesTransaction->parts_number ?: $dash)));
+        $branchLabel = $salesTransaction->branch?->display_name
+            ?: ($salesTransaction->branch_name_from_sheet ?: $dash);
+        $importedAt = $salesTransaction->created_at
+            ? $salesTransaction->created_at->format('M d, Y h:i A')
+            : $dash;
 
-                    <div class="mt-4 d-flex flex-wrap gap-2">
-                        <span class="soft-badge success">{{ $salesTransaction->sales_type ?? 'N/A' }}</span>
-                        <span class="soft-badge info">{{ $salesTransaction->transaction_type ?? '-' }}</span>
-                        <span class="soft-badge secondary">{{ $salesTransaction->branch?->display_name ?? '-' }}</span>
-                    </div>
-                </div>
+        $customerFields = [
+            ['Customer Name', $salesTransaction->customer_name],
+            ['Account Number', $salesTransaction->account_number],
+            ['Receipt Number', $salesTransaction->receipt_number],
+            ['Contact Number', $salesTransaction->contact_number],
+            ['Birth Date', $date($salesTransaction->birth_date)],
+            ['Sales Source', $salesTransaction->sales_source],
+            ['Agent / Referral', $salesTransaction->agent_referral_name],
+            ['Transaction Type', $salesTransaction->transaction_type],
+        ];
 
-                <div class="summary-date-box d-flex flex-column justify-content-center align-items-center px-4 py-4">
-                    <div class="summary-date-label">Invoice Date</div>
-                    <div class="summary-date-value">
-                        {{ $salesTransaction->invoice_date ? \Carbon\Carbon::parse($salesTransaction->invoice_date)->format('M d, Y') : '-' }}
-                    </div>
-                </div>
-            </div>
-        </div>
+        $addressFields = [
+            ['Street / Zone / Purok', $salesTransaction->street_address],
+            ['Municipality / City', $salesTransaction->city_municipality],
+            ['Branch', $branchLabel],
+        ];
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-            <div class="text-muted small">
-                Customer <strong>{{ $salesTransaction->customer_name ?? '-' }}</strong>
-                · Account <strong>{{ $salesTransaction->account_number ?? '-' }}</strong>
-                · Receipt <strong>{{ $salesTransaction->receipt_number ?? '-' }}</strong>
-            </div>
+        $productFields = [
+            ['Product Line', $salesTransaction->product_line_name],
+            ['Category', $salesTransaction->category_name_raw],
+            ['Brand', $salesTransaction->brand_name_raw],
+            ['Model', $salesTransaction->model],
+            ['Product', $salesTransaction->product],
+            ['Capacity', $salesTransaction->capacity],
+            ['Description', $salesTransaction->product_description],
+            ['Serial Number', $salesTransaction->serial_number],
+            ['Engine Number', $salesTransaction->engine_number],
+            ['Chassis Number', $salesTransaction->chassis_number],
+            ['Parts Number', $salesTransaction->parts_number],
+            ['Color', $salesTransaction->color],
+            ['Stock Code', $salesTransaction->stock_code],
+            ['Product Remarks', $salesTransaction->product_remarks],
+        ];
 
+        $financialFields = [
+            ['Promissory Note', $money($salesTransaction->promissory_note_amount), true],
+            ['SRP / COD', $money($salesTransaction->srp_cod_amount), true],
+            ['Cash Amount', $money($salesTransaction->cash_amount), true],
+            ['Gross Sales', $money($salesTransaction->gross_sales_amount), true],
+            ['Downpayment', $money($salesTransaction->downpayment_amount), true],
+            ['Monthly Amortization', $money($salesTransaction->monthly_amortization), true],
+            ['Commission', $money($salesTransaction->commission_amount), true],
+            ['Terms', $salesTransaction->terms],
+        ];
+
+        $importFields = [
+            ['Import Batch', $salesTransaction->import_batch_id ? '#' . $salesTransaction->import_batch_id : null],
+            ['Sheet', $salesTransaction->importBatchSheet?->sheet_name],
+            ['Encoded By / Uploaded By', $salesTransaction->encoded_by],
+            ['Source Row Number', $salesTransaction->source_row_number],
+            ['Date Last Updated', $date($salesTransaction->date_last_updated)],
+            ['Imported At', $importedAt],
+        ];
+    @endphp
+
+    <div class="transaction-show-page px-3 px-md-4 py-4">
+        <div class="transaction-profile-header">
             <div>
-                <a href="{{ route('sales-transactions.index') }}" class="btn btn-outline-secondary btn-summary-outline">
+                <div class="transaction-page-kicker">Sales Transactions</div>
+                <h1 class="transaction-page-title">Sales Transaction Record</h1>
+                <p class="transaction-page-subtitle">
+                    Complete customer profile, transaction details, and financial summary.
+                </p>
+            </div>
+
+            <div class="transaction-page-actions">
+                <a href="{{ route('sales-transactions.index') }}" class="transaction-btn transaction-btn-secondary">
                     Back to Transactions
                 </a>
             </div>
         </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Promissory Note</div>
-                    <div class="summary-stat-value">
-                        ₱{{ number_format((float) ($salesTransaction->promissory_note_amount ?? 0), 2) }}
-                    </div>
-                    <div class="summary-stat-sub">Recorded PN amount for the transaction</div>
+        <section class="transaction-card transaction-hero-card">
+            <div class="transaction-avatar">{{ $initials ?: 'C' }}</div>
+
+            <div>
+                <h2 class="transaction-customer-name">{{ $value($salesTransaction->customer_name) }}</h2>
+                <div class="transaction-hero-meta">
+                    <span><strong>Account:</strong> {{ $value($salesTransaction->account_number) }}</span>
+                    <span><strong>Receipt:</strong> {{ $value($salesTransaction->receipt_number) }}</span>
+                    <span><strong>Contact:</strong> {{ $value($salesTransaction->contact_number) }}</span>
+                    <span><strong>Date:</strong> {{ $date($salesTransaction->invoice_date) }}</span>
+                    <span><strong>Branch:</strong> {{ $branchLabel }}</span>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Cash Amount</div>
-                    <div class="summary-stat-value">
-                        ₱{{ number_format((float) ($salesTransaction->cash_amount ?? 0), 2) }}
-                    </div>
-                    <div class="summary-stat-sub">Cash portion associated with the sale</div>
-                </div>
+            <div class="transaction-badge-stack">
+                <span class="transaction-badge {{ $unitTypeBadgeClass }}">{{ $unitTypeLabel }}</span>
+                <span class="transaction-badge transaction-badge-blue">{{ $value($salesTransaction->transaction_type) }}</span>
+                <span class="transaction-badge transaction-badge-slate">{{ $value($salesTransaction->sales_type) }}</span>
             </div>
+        </section>
 
-            <div class="col-md-3">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Gross Sales</div>
-                    <div class="summary-stat-value">
-                        ₱{{ number_format((float) ($salesTransaction->gross_sales_amount ?? 0), 2) }}
-                    </div>
-                    <div class="summary-stat-sub">Gross sales amount reflected in the record</div>
-                </div>
-            </div>
+        <section class="transaction-kpi-strip" aria-label="Financial summary">
+            <article class="transaction-kpi-card blue">
+                <div class="transaction-kpi-label">Promissory Note</div>
+                <div class="transaction-kpi-value">{!! $money($salesTransaction->promissory_note_amount) !!}</div>
+            </article>
 
-            <div class="col-md-3">
-                <div class="summary-stat">
-                    <div class="summary-stat-label">Terms</div>
-                    <div class="summary-stat-value">{{ $salesTransaction->terms ?? '-' }}</div>
-                    <div class="summary-stat-sub">Terms linked to this transaction</div>
+            <article class="transaction-kpi-card green">
+                <div class="transaction-kpi-label">Cash Amount</div>
+                <div class="transaction-kpi-value">{!! $money($salesTransaction->cash_amount) !!}</div>
+            </article>
+
+            <article class="transaction-kpi-card sky">
+                <div class="transaction-kpi-label">Gross Sales</div>
+                <div class="transaction-kpi-value">{!! $money($salesTransaction->gross_sales_amount ?? $salesTransaction->srp_cod_amount) !!}</div>
+            </article>
+
+            <article class="transaction-kpi-card purple">
+                <div class="transaction-kpi-label">Terms</div>
+                <div class="transaction-kpi-value">{{ $value($salesTransaction->terms) }}</div>
+            </article>
+
+            <article class="transaction-kpi-card cyan">
+                <div class="transaction-kpi-label">Downpayment</div>
+                <div class="transaction-kpi-value">{!! $money($salesTransaction->downpayment_amount) !!}</div>
+            </article>
+
+            <article class="transaction-kpi-card orange">
+                <div class="transaction-kpi-label">Monthly Amortization</div>
+                <div class="transaction-kpi-value">{!! $money($salesTransaction->monthly_amortization) !!}</div>
+            </article>
+        </section>
+
+        <div class="transaction-info-grid">
+            <section class="transaction-card transaction-info-card">
+                <div class="transaction-card-header">
+                    <div>
+                        <h2 class="transaction-card-title">Customer Information</h2>
+                        <p class="transaction-card-subtitle">Primary customer and transaction identity details.</p>
+                    </div>
                 </div>
-            </div>
+
+                <div class="transaction-field-list">
+                    @foreach($customerFields as [$label, $fieldValue])
+                        <div class="transaction-field-row">
+                            <div class="transaction-field-label">{{ $label }}</div>
+                            <div class="transaction-field-value">{{ $value($fieldValue) }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+
+            <section class="transaction-card transaction-info-card">
+                <div class="transaction-card-header">
+                    <div>
+                        <h2 class="transaction-card-title">Address Information</h2>
+                        <p class="transaction-card-subtitle">Customer location and assigned branch details.</p>
+                    </div>
+                </div>
+
+                <div class="transaction-field-list">
+                    @foreach($addressFields as [$label, $fieldValue])
+                        <div class="transaction-field-row">
+                            <div class="transaction-field-label">{{ $label }}</div>
+                            <div class="transaction-field-value">{{ $value($fieldValue) }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+
+            <section class="transaction-card transaction-info-card">
+                <div class="transaction-card-header">
+                    <div>
+                        <h2 class="transaction-card-title">Product Information</h2>
+                        <p class="transaction-card-subtitle">Product line, identifiers, and unit reference details.</p>
+                    </div>
+                    <span class="transaction-badge {{ $unitTypeBadgeClass }}">{{ $unitTypeLabel }}</span>
+                </div>
+
+                <div class="transaction-field-list">
+                    <div class="transaction-field-row">
+                        <div class="transaction-field-label">Primary Product / Model</div>
+                        <div class="transaction-field-value">{{ $productTitle }}</div>
+                    </div>
+
+                    @foreach($productFields as [$label, $fieldValue])
+                        <div class="transaction-field-row">
+                            <div class="transaction-field-label">{{ $label }}</div>
+                            <div class="transaction-field-value">{{ $value($fieldValue) }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+
+            <section class="transaction-card transaction-info-card">
+                <div class="transaction-card-header">
+                    <div>
+                        <h2 class="transaction-card-title">Financial Summary</h2>
+                        <p class="transaction-card-subtitle">Main financial values linked to this transaction.</p>
+                    </div>
+                </div>
+
+                <div class="transaction-field-list">
+                    @foreach($financialFields as $field)
+                        <div class="transaction-field-row">
+                            <div class="transaction-field-label">{{ $field[0] }}</div>
+                            <div class="transaction-field-value {{ ($field[2] ?? false) ? 'transaction-money' : '' }}">
+                                {!! ($field[2] ?? false) ? $field[1] : e($value($field[1])) !!}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="summary-card h-100">
-                            <div class="summary-section-header">
-                                <h5>Customer Information</h5>
-                                <div class="summary-section-subtitle">
-                                    Primary customer and transaction identity details.
-                                </div>
-                            </div>
+        <section class="transaction-card transaction-related-card">
+            <div class="transaction-card-header">
+                <div>
+                    <h2 class="transaction-card-title">Customer Purchase History</h2>
+                    <p class="transaction-card-subtitle">Previous and related purchases linked to this customer/account.</p>
+                </div>
+                <span class="transaction-badge transaction-badge-blue">{{ number_format($customerPurchaseHistory->count()) }}</span>
+            </div>
 
-                            <div class="p-4">
-                                <div class="detail-list">
-                                    <div class="detail-item">
-                                        <div class="detail-label">Customer Name</div>
-                                        <div class="detail-value">{{ $salesTransaction->customer_name ?? '-' }}</div>
-                                    </div>
+            @if($customerPurchaseHistory->isNotEmpty())
+                <div class="transaction-history-table-wrap">
+                    <table class="transaction-history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Receipt No.</th>
+                                <th>Product / Model</th>
+                                <th>Unit Type</th>
+                                <th>Branch</th>
+                                <th class="text-end">Cash Amount</th>
+                                <th class="text-end">Promissory Note</th>
+                                <th class="text-end">Gross Sales / SRP-COD</th>
+                                <th>Terms</th>
+                                <th class="transaction-history-actions">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($customerPurchaseHistory as $purchase)
+                                @php
+                                    $purchaseUnitType = strtoupper(trim((string) ($purchase->unit_type ?? '')));
+                                    $purchaseIsRepo = in_array($purchaseUnitType, ['REPO', 'REPOSSESSED', 'REPOSSESSION'], true);
+                                    $purchaseUnitLabel = $purchaseIsRepo ? 'Repo' : ($purchase->unit_type ?: 'Brand New');
+                                    $purchaseBadgeClass = $purchaseIsRepo ? 'transaction-badge-amber' : 'transaction-badge-green';
+                                    $purchaseProduct = $purchase->model
+                                        ?: ($purchase->product
+                                            ?: ($purchase->product_description
+                                                ?: ($purchase->parts_number ?: $dash)));
+                                    $purchaseGrossOrSrp = $purchase->gross_sales_amount ?? $purchase->srp_cod_amount;
+                                @endphp
+                                <tr>
+                                    <td>{{ $date($purchase->invoice_date) }}</td>
+                                    <td>{{ $value($purchase->receipt_number) }}</td>
+                                    <td>
+                                        <div class="transaction-history-product" title="{{ $purchaseProduct }}">
+                                            {{ $purchaseProduct }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="transaction-badge {{ $purchaseBadgeClass }}">{{ $purchaseUnitLabel }}</span>
+                                    </td>
+                                    <td>{{ $value($purchase->branch?->display_name ?: $purchase->branch_name_from_sheet) }}</td>
+                                    <td class="text-end transaction-money">{!! $money($purchase->cash_amount) !!}</td>
+                                    <td class="text-end transaction-money">{!! $money($purchase->promissory_note_amount) !!}</td>
+                                    <td class="text-end transaction-money">{!! $money($purchaseGrossOrSrp) !!}</td>
+                                    <td>{{ $value($purchase->terms) }}</td>
+                                    <td class="transaction-history-actions">
+                                        <a href="{{ route('sales-transactions.show', $purchase) }}" class="transaction-btn transaction-btn-secondary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="transaction-empty-state">
+                    No other purchases found for this customer.
+                </div>
+            @endif
+        </section>
 
-                                    <div class="detail-item">
-                                        <div class="detail-label">Account Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->account_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Receipt Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->receipt_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Contact Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->contact_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Birth Date</div>
-                                        <div class="detail-value">{{ $salesTransaction->birth_date ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Sales Source</div>
-                                        <div class="detail-value">{{ $salesTransaction->sales_source ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item" style="grid-column: 1 / -1;">
-                                        <div class="detail-label">Transaction Type</div>
-                                        <div class="detail-value">{{ $salesTransaction->transaction_type ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="summary-card h-100">
-                            <div class="summary-section-header">
-                                <h5>Address Information</h5>
-                                <div class="summary-section-subtitle">
-                                    Customer location and assigned branch details.
-                                </div>
-                            </div>
-
-                            <div class="p-4">
-                                <div class="detail-list">
-                                    <div class="detail-item">
-                                        <div class="detail-label">Street / Sitio / Purok</div>
-                                        <div class="detail-value">{{ $salesTransaction->street_address ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Municipality / City</div>
-                                        <div class="detail-value">{{ $salesTransaction->city_municipality ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item" style="grid-column: 1 / -1;">
-                                        <div class="detail-label">Branch</div>
-                                        <div class="detail-value">{{ $salesTransaction->branch?->display_name ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="summary-card">
-                            <div class="summary-section-header">
-                                <h5>Product Information</h5>
-                                <div class="summary-section-subtitle">
-                                    Product line, identifiers, and unit reference details.
-                                </div>
-                            </div>
-
-                            <div class="p-4">
-                                <div class="mb-4">
-                                    <span class="soft-badge info">{{ $salesTransaction->unit_type ?? '-' }}</span>
-                                </div>
-
-                                <div class="detail-list">
-                                    <div class="detail-item">
-                                        <div class="detail-label">Line</div>
-                                        <div class="detail-value">{{ $salesTransaction->product_line_name ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Category</div>
-                                        <div class="detail-value">{{ $salesTransaction->category_name_raw ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Brand</div>
-                                        <div class="detail-value">{{ $salesTransaction->brand_name_raw ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Model</div>
-                                        <div class="detail-value">{{ $salesTransaction->model ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Capacity</div>
-                                        <div class="detail-value">{{ $salesTransaction->capacity ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Description</div>
-                                        <div class="detail-value">{{ $salesTransaction->product_description ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Serial Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->serial_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Engine Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->engine_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Chassis Number</div>
-                                        <div class="detail-value">{{ $salesTransaction->chassis_number ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Color</div>
-                                        <div class="detail-value">{{ $salesTransaction->color ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <div class="detail-label">Stock Code</div>
-                                        <div class="detail-value">{{ $salesTransaction->stock_code ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <section class="transaction-card transaction-related-card">
+            <div class="transaction-card-header">
+                <div>
+                    <h2 class="transaction-card-title">Import Information</h2>
+                    <p class="transaction-card-subtitle">Source import details and update history from the sheet.</p>
                 </div>
             </div>
 
-
-            <div class="col-lg-4">
-                <div class="summary-card mb-4">
-                    <div class="summary-section-header">
-                        <h5>Financial Summary</h5>
-                        <div class="summary-section-subtitle">
-                            Main financial values linked to this transaction.
-                        </div>
+            <div class="transaction-field-list">
+                @foreach($importFields as [$label, $fieldValue])
+                    <div class="transaction-field-row">
+                        <div class="transaction-field-label">{{ $label }}</div>
+                        <div class="transaction-field-value">{{ $value($fieldValue) }}</div>
                     </div>
+                @endforeach
+            </div>
+        </section>
 
-                    <div class="p-4">
-                        <div class="money-highlight mb-4">
-                            <div class="money-highlight-label">Promissory Note</div>
-                            <div class="money-highlight-value">
-                                ₱{{ number_format((float) ($salesTransaction->promissory_note_amount ?? 0), 2) }}
-                            </div>
-                        </div>
-
-                        <div class="detail-list">
-                            <div class="detail-item">
-                                <div class="detail-label">SRP / COD</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->srp_cod_amount ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Cash</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->cash_amount ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Gross Sales</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->gross_sales_amount ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Downpayment</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->downpayment_amount ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Monthly Amortization</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->monthly_amortization ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Commission</div>
-                                <div class="detail-value">₱{{ number_format((float) ($salesTransaction->commission_amount ?? 0), 2) }}</div>
-                            </div>
-
-                            <div class="detail-item" style="grid-column: 1 / -1;">
-                                <div class="detail-label">Terms</div>
-                                <div class="detail-value">{{ $salesTransaction->terms ?? '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
+        <section class="transaction-card transaction-related-card transaction-audit-card">
+            <div class="transaction-card-header">
+                <div>
+                    <h2 class="transaction-card-title">Conflict History / Audit Trail</h2>
+                    <p class="transaction-card-subtitle">Related import conflicts already linked to this transaction.</p>
                 </div>
-
-                <div class="summary-card mb-4">
-                    <div class="summary-section-header">
-                        <h5>Import Information</h5>
-                        <div class="summary-section-subtitle">
-                            Source import details and update history from the sheet.
-                        </div>
-                    </div>
-
-                    <div class="p-4">
-                        <div class="detail-list">
-                            <div class="detail-item">
-                                <div class="detail-label">Import Batch</div>
-                                <div class="detail-value">#{{ $salesTransaction->import_batch_id ?? '-' }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Sheet</div>
-                                <div class="detail-value">{{ $salesTransaction->importBatchSheet?->sheet_name ?? '-' }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Encoded By</div>
-                                <div class="detail-value">{{ $salesTransaction->encoded_by ?? '-' }}</div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">Last Updated From Sheet</div>
-                                <div class="detail-value">{{ $salesTransaction->date_last_updated ?? '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="summary-card">
-                    <div class="summary-section-header">
-                        <h5>Conflict History</h5>
-                        <div class="summary-section-subtitle">
-                            Related import conflicts linked to this transaction.
-                        </div>
-                    </div>
-
-                    <div class="p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="text-muted small">Related records</div>
-                            <span class="soft-badge secondary">{{ $relatedConflicts->count() }}</span>
-                        </div>
-
-                        @forelse($relatedConflicts as $conflict)
-                            <div class="conflict-item mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <strong>#{{ $conflict->id }}</strong>
-                                    <span class="soft-badge secondary">
-                                        {{ ucfirst($conflict->status) }}
-                                    </span>
-                                </div>
-
-                                <div class="small text-muted mb-3">
-                                    {{ $conflict->created_at?->format('M d, Y h:i A') }}
-                                </div>
-
-                                <a href="{{ route('import-conflicts.show', $conflict) }}"
-                                   class="btn btn-sm btn-outline-primary btn-summary-outline w-100">
-                                    View Conflict
-                                </a>
-                            </div>
-                        @empty
-                            <div class="text-center text-muted py-3">
-                                No related conflicts found.
-                            </div>
-                        @endforelse
-                    </div>
+                <div class="transaction-page-actions">
+                    <span class="transaction-badge transaction-badge-slate">{{ number_format($relatedConflicts->count()) }}</span>
+                    <button type="button"
+                            class="transaction-btn transaction-btn-secondary transaction-audit-toggle"
+                            data-conflict-history-toggle
+                            aria-expanded="false">
+                        Show Conflict History
+                    </button>
                 </div>
             </div>
-        </div>
+
+            <div class="transaction-audit-panel" data-conflict-history-panel>
+                @forelse($relatedConflicts as $conflict)
+                    @if($loop->first)
+                        <div class="transaction-conflict-list">
+                    @endif
+
+                    <article class="transaction-conflict-item">
+                        <div class="transaction-conflict-title">
+                            <span>#{{ $conflict->id }}</span>
+                            <span class="transaction-badge transaction-badge-slate">{{ ucfirst($conflict->status) }}</span>
+                        </div>
+                        <div class="transaction-conflict-meta">
+                            {{ $conflict->created_at?->format('M d, Y h:i A') ?? $dash }}
+                        </div>
+                        <a href="{{ route('import-conflicts.show', $conflict) }}" class="transaction-btn transaction-btn-secondary">
+                            View Conflict
+                        </a>
+                    </article>
+
+                    @if($loop->last)
+                        </div>
+                    @endif
+                @empty
+                    <div class="transaction-empty-state">
+                        No conflict history recorded.
+                    </div>
+                @endforelse
+            </div>
+        </section>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggle = document.querySelector('[data-conflict-history-toggle]');
+            const panel = document.querySelector('[data-conflict-history-panel]');
+
+            if (!toggle || !panel) {
+                return;
+            }
+
+            toggle.addEventListener('click', function () {
+                const isOpen = panel.classList.toggle('is-open');
+
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                toggle.textContent = isOpen ? 'Hide Conflict History' : 'Show Conflict History';
+            });
+        });
+    </script>
 </x-app-layout>
