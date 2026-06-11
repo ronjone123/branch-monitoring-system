@@ -65,8 +65,16 @@ class ImportBatchController extends Controller
     {
         $import_batch->load(['user', 'sheets.branch', 'errors']);
 
+        $importedTransactions = $import_batch->transactions()
+            ->with('branch')
+            ->latest('invoice_date')
+            ->latest('id')
+            ->limit(10)
+            ->get();
+
         return view('import-batches.show', [
             'importBatch' => $import_batch,
+            'importedTransactions' => $importedTransactions,
         ]);
     }
 
