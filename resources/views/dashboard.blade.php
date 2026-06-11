@@ -310,7 +310,24 @@
         }
 
         .reporting-filter-mobile-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 1rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            padding: 0.9rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .reporting-filter-collapsible {
             display: none;
+        }
+
+        .reporting-filter-collapsible.is-open {
+            display: block;
         }
 
         .reporting-filter-summary-label {
@@ -461,6 +478,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            margin-bottom: 0.85rem;
         }
 
         .dashboard-preset-btn {
@@ -1842,16 +1860,7 @@
         }
 
         .reporting-filter-mobile-summary {
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 1rem;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-            padding: 0.9rem;
-            margin-bottom: 0.85rem;
         }
 
         .reporting-filter-mobile-summary strong {
@@ -1910,12 +1919,6 @@
         .reporting-filter-actions a,
         .reporting-filter-actions button {
             width: 100%;
-        }
-    }
-
-    @media (min-width: 769px) {
-        .reporting-filter-collapsible {
-            display: block !important;
         }
     }
 
@@ -2114,8 +2117,6 @@
     $presetToday = now()->toDateString();
     $presetMonthStart = now()->startOfMonth()->toDateString();
     $presetMonthEnd = now()->toDateString();
-    $presetLastMonthStart = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
-    $presetLastMonthEnd = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
     $presetYearStart = now()->startOfYear()->toDateString();
 
     $hasDashboardData =
@@ -2138,8 +2139,30 @@
             </div>
 
             <button type="button" class="reporting-filter-toggle" data-filter-toggle aria-expanded="false">
-                Change Filters
+                Show Filters
             </button>
+        </div>
+
+        <div class="dashboard-preset-row">
+            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'today' ? 'active' : '' }}"
+               href="{{ route('dashboard', ['date_preset' => 'today', 'date_from' => $presetToday, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                Today
+            </a>
+
+            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'this_month' ? 'active' : '' }}"
+               href="{{ route('dashboard', ['date_preset' => 'this_month', 'date_from' => $presetMonthStart, 'date_to' => $presetMonthEnd, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                This Month
+            </a>
+
+            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'year_to_date' ? 'active' : '' }}"
+               href="{{ route('dashboard', ['date_preset' => 'year_to_date', 'date_from' => $presetYearStart, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                Year to Date
+            </a>
+
+            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'all_time' ? 'active' : '' }}"
+               href="{{ route('dashboard', ['date_preset' => 'all_time', 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
+                All Time
+            </a>
         </div>
 
         <div class="reporting-filter-collapsible" data-filter-panel>
@@ -2210,32 +2233,6 @@
             </div>
         </form>
 
-        <div class="dashboard-preset-row mt-3">
-            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'today' ? 'active' : '' }}"
-               href="{{ route('dashboard', ['date_preset' => 'today', 'date_from' => $presetToday, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
-                Today
-            </a>
-
-            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'this_month' ? 'active' : '' }}"
-               href="{{ route('dashboard', ['date_preset' => 'this_month', 'date_from' => $presetMonthStart, 'date_to' => $presetMonthEnd, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
-                This Month
-            </a>
-
-            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'last_month' ? 'active' : '' }}"
-               href="{{ route('dashboard', ['date_preset' => 'last_month', 'date_from' => $presetLastMonthStart, 'date_to' => $presetLastMonthEnd, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
-                Last Month
-            </a>
-
-            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'year_to_date' ? 'active' : '' }}"
-               href="{{ route('dashboard', ['date_preset' => 'year_to_date', 'date_from' => $presetYearStart, 'date_to' => $presetToday, 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
-                Year to Date
-            </a>
-
-            <a class="dashboard-preset-btn {{ ($datePreset ?? null) === 'all_time' ? 'active' : '' }}"
-               href="{{ route('dashboard', ['date_preset' => 'all_time', 'business_unit_id' => $selectedBusinessUnitId, 'branch_id' => $selectedBranchId]) }}">
-                All Time
-            </a>
-        </div>
         </div>
 
         @if(! $hasDashboardData)
@@ -2245,7 +2242,7 @@
                 </div>
 
                 <p class="dashboard-empty-state-text">
-                    Try selecting <strong>Last Month</strong>, clearing filters, or checking if recent branch files have already been imported.
+                    Try changing filters, clearing filters, or checking if recent branch files have already been imported.
                     @if($latestAvailableTransactionDate)
                         Latest matching transaction date:
                         <strong>{{ \Carbon\Carbon::parse($latestAvailableTransactionDate)->format('M d, Y') }}</strong>.
@@ -4208,7 +4205,7 @@
                 filterToggle.addEventListener('click', function () {
                     const isOpen = filterPanel.classList.toggle('is-open');
 
-                    filterToggle.textContent = isOpen ? 'Hide Filters' : 'Change Filters';
+                    filterToggle.textContent = isOpen ? 'Hide Filters' : 'Show Filters';
                     filterToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 });
             }
