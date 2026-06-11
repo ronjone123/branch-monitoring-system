@@ -49,10 +49,60 @@
         }
 
         .executive-filter-mobile-summary {
-            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin-bottom: .85rem;
+        }
+
+        .executive-filter-summary-label {
+            display: block;
+            color: #64748b;
+            font-size: .7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: .15rem;
+        }
+
+        .executive-filter-mobile-summary strong {
+            color: #0f172a;
+            font-size: .95rem;
+            font-weight: 900;
+        }
+
+        .executive-filter-mobile-summary p {
+            margin: .15rem 0 0;
+            color: #64748b;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .executive-filter-toggle {
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            background: #ffffff;
+            color: #2563eb;
+            border-radius: 999px;
+            padding: .55rem .8rem;
+            font-size: .78rem;
+            font-weight: 900;
+            white-space: nowrap;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.10);
+        }
+
+        .executive-filter-toggle:hover {
+            background: rgba(96, 165, 250, 0.14);
+            border-color: rgba(37, 99, 235, 0.28);
+            color: #1d4ed8;
         }
 
         .executive-filter-collapsible {
+            display: none;
+            margin-top: .85rem;
+        }
+
+        .executive-filter-collapsible.is-open {
             display: block;
         }
 
@@ -60,7 +110,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: .5rem;
-            margin-bottom: 1rem;
         }
 
         .executive-filter-preset {
@@ -1549,10 +1598,6 @@
             }
 
             .executive-filter-mobile-summary {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: .75rem;
                 background: #ffffff;
                 border: 1px solid rgba(15, 23, 42, 0.08);
                 border-radius: 1rem;
@@ -1560,48 +1605,10 @@
                 padding: .9rem;
             }
 
-            .executive-filter-summary-label {
-                display: block;
-                color: #64748b;
-                font-size: .7rem;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: .04em;
-                margin-bottom: .15rem;
-            }
-
-            .executive-filter-mobile-summary strong {
-                color: #0f172a;
-                font-size: .95rem;
-                font-weight: 900;
-            }
-
-            .executive-filter-mobile-summary p {
-                margin: .15rem 0 0;
-                color: #64748b;
-                font-size: .78rem;
-                font-weight: 700;
-            }
-
             .executive-filter-toggle {
-                border: 1px solid rgba(37, 99, 235, 0.25);
                 background: #2563eb;
                 color: #ffffff;
-                border-radius: 999px;
-                padding: .55rem .8rem;
-                font-size: .78rem;
-                font-weight: 900;
-                white-space: nowrap;
                 box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
-            }
-
-            .executive-filter-collapsible {
-                display: none;
-                margin-top: .85rem;
-            }
-
-            .executive-filter-collapsible.is-open {
-                display: block;
             }
 
             .exec-kpi {
@@ -1711,7 +1718,6 @@
 
                 $today = now()->toDateString();
                 $thisMonthStart = now()->startOfMonth()->toDateString();
-                $lastMonth = now()->subMonthNoOverflow();
                 $yearStart = now()->startOfYear()->toDateString();
                 $datePresetLinks = [
                     'today' => [
@@ -1721,14 +1727,6 @@
                     'this_month' => [
                         'label' => 'This Month',
                         'query' => ['date_preset' => 'this_month', 'date_from' => $thisMonthStart, 'date_to' => $today],
-                    ],
-                    'last_month' => [
-                        'label' => 'Last Month',
-                        'query' => [
-                            'date_preset' => 'last_month',
-                            'date_from' => $lastMonth->copy()->startOfMonth()->toDateString(),
-                            'date_to' => $lastMonth->copy()->endOfMonth()->toDateString(),
-                        ],
                     ],
                     'year_to_date' => [
                         'label' => 'Year to Date',
@@ -1758,22 +1756,22 @@
                 </div>
 
                 <button type="button" class="executive-filter-toggle" data-executive-filter-toggle aria-expanded="false">
-                    Change Filters
+                    Show Filters
                 </button>
             </div>
 
-            <div class="executive-filter-collapsible" data-executive-filter-panel>
-                <div class="executive-filter-presets" aria-label="Quick date filters">
-                    @foreach($datePresetLinks as $presetKey => $presetLink)
-                        <a
-                            href="{{ route('executive.dashboard', array_merge($filterCarry, $presetLink['query'])) }}"
-                            class="executive-filter-preset {{ ($filters['date_preset'] ?? 'this_month') === $presetKey ? 'active' : '' }}"
-                        >
-                            {{ $presetLink['label'] }}
-                        </a>
-                    @endforeach
-                </div>
+            <div class="executive-filter-presets" aria-label="Quick date filters">
+                @foreach($datePresetLinks as $presetKey => $presetLink)
+                    <a
+                        href="{{ route('executive.dashboard', array_merge($filterCarry, $presetLink['query'])) }}"
+                        class="executive-filter-preset {{ ($filters['date_preset'] ?? 'this_month') === $presetKey ? 'active' : '' }}"
+                    >
+                        {{ $presetLink['label'] }}
+                    </a>
+                @endforeach
+            </div>
 
+            <div class="executive-filter-collapsible" data-executive-filter-panel>
                 <form method="GET" action="{{ route('executive.dashboard') }}">
                     <input type="hidden" name="date_preset" value="custom">
                     <div class="executive-filter-grid">
@@ -2537,7 +2535,7 @@
                     const isOpen = executiveFilterPanel.classList.toggle('is-open');
 
                     executiveFilterToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                    executiveFilterToggle.textContent = isOpen ? 'Hide Filters' : 'Change Filters';
+                    executiveFilterToggle.textContent = isOpen ? 'Hide Filters' : 'Show Filters';
                 });
             }
 
