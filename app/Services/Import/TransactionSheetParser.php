@@ -58,6 +58,7 @@ class TransactionSheetParser
                 'contact_number',
                 'transaction_type',
                 'receipt_number',
+                'product',
                 'product_line_name',
                 'category_name_raw',
                 'brand_name_raw',
@@ -67,8 +68,11 @@ class TransactionSheetParser
                 'serial_number',
                 'engine_number',
                 'chassis_number',
+                'parts_number',
                 'color',
                 'stock_code',
+                'amount',
+                'srp_cod_amount',
                 'cash_amount',
                 'downpayment_amount',
                 'promissory_note_amount',
@@ -526,6 +530,102 @@ class TransactionSheetParser
                 }
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Conservative Incomplete-Row Fallback
+            |--------------------------------------------------------------------------
+            | Older imports may have rows with no account number, receipt number, or
+            | unit identifier. If a later workbook completes those details, the v4
+            | match key changes and the row can otherwise be inserted twice.
+            |
+            | This fallback is intentionally narrow: same branch/date, compatible
+            | transaction type, same effective amount, and compatible product identity.
+            |--------------------------------------------------------------------------
+            */
+            $fallbackCandidates = $this->findIncompleteTransactionFallbackCandidates(
+                $existingTransactions,
+                $sheet->branch_id,
+                $invoiceDate,
+                $transactionType,
+                [
+                    'account_number' => $accountNumber,
+                    'receipt_number' => $receiptNumber,
+                    'serial_number' => $serialNumber,
+                    'engine_number' => $engineNumber,
+                    'chassis_number' => $chassisNumber,
+                    'stock_code' => $stockCode,
+                    'amount' => $amount,
+                    'srp_cod_amount' => $amount,
+                    'cash_amount' => $cashAmount,
+                    'promissory_note_amount' => $promissoryNoteAmount,
+                    'gross_sales_amount' => $grossSalesAmount,
+                    'model' => $model,
+                    'product' => $product,
+                    'product_description' => $productDescription,
+                    'parts_number' => $partsNumber,
+                    'product_line_name' => $productLineName,
+                ]
+            );
+
+            if ($fallbackCandidates->count() === 1) {
+                $existingTransaction = $fallbackCandidates->first();
+
+                $existingCompletenessScore = $this->completenessScore($existingTransaction->toArray());
+                $incomingCompletenessScore = $this->completenessScore($incomingDataForScore);
+
+                $conflictNotes = 'Potential completed sales row detected during import. Incoming row matches an older incomplete transaction by branch, date, amount, transaction type, and product identity.';
+
+                if ($incomingCompletenessScore > $existingCompletenessScore) {
+                    $conflictNotes .= ' Incoming row appears more complete than the existing transaction.';
+                }
+
+                ImportConflict::updateOrCreate(
+                    [
+                        'import_batch_sheet_id' => $sheet->id,
+                        'source_row_number' => $row,
+                        'match_key' => $matchKey,
+                    ],
+                    [
+                        'import_batch_id' => $batch->id,
+                        'existing_sales_transaction_id' => $existingTransaction->id,
+                        'branch_id' => $sheet->branch_id,
+                        'conflict_type' => 'completeness_conflict',
+                        'new_row_hash' => $rowHash,
+                        'existing_row_data' => $existingTransaction->raw_row_data,
+                        'incoming_row_data' => $cells,
+                        'status' => 'pending',
+                        'notes' => $conflictNotes,
+                    ]
+                );
+
+                $conflicts++;
+                continue;
+            }
+
+            if ($fallbackCandidates->count() > 1) {
+                ImportConflict::updateOrCreate(
+                    [
+                        'import_batch_sheet_id' => $sheet->id,
+                        'source_row_number' => $row,
+                        'match_key' => $matchKey,
+                    ],
+                    [
+                        'import_batch_id' => $batch->id,
+                        'existing_sales_transaction_id' => null,
+                        'branch_id' => $sheet->branch_id,
+                        'conflict_type' => 'ambiguous_account_conflict',
+                        'new_row_hash' => $rowHash,
+                        'existing_row_data' => null,
+                        'incoming_row_data' => $cells,
+                        'status' => 'pending',
+                        'notes' => 'Multiple older incomplete transactions match this incoming row by branch, date, amount, transaction type, and product identity. Manual review is required; no transaction was inserted automatically.',
+                    ]
+                );
+
+                $conflicts++;
+                continue;
+            }
+
             $createdTransaction = SalesTransaction::create([
                 'import_batch_id' => $batch->id,
                 'import_batch_sheet_id' => $sheet->id,
@@ -644,6 +744,153 @@ class TransactionSheetParser
         $clean = str_replace([',', '₱', ' '], '', (string) $value);
 
         return is_numeric($clean) ? (float) $clean : null;
+    }
+
+    private function findIncompleteTransactionFallbackCandidates(
+        $existingTransactions,
+        ?int $branchId,
+        ?string $invoiceDate,
+        ?string $transactionType,
+        array $incoming
+    ) {
+        if (! $branchId || ! $invoiceDate) {
+            return collect();
+        }
+
+        $incomingAmountCents = $this->effectiveAmountCents($incoming);
+
+        if ($incomingAmountCents === null) {
+            return collect();
+        }
+
+        return $existingTransactions
+            ->filter(function ($transaction) use ($branchId, $invoiceDate, $transactionType, $incoming, $incomingAmountCents) {
+                if ((int) $transaction->branch_id !== (int) $branchId) {
+                    return false;
+                }
+
+                if (optional($transaction->invoice_date)->format('Y-m-d') !== $invoiceDate) {
+                    return false;
+                }
+
+                if ($this->hasStrongIdentifier($transaction)) {
+                    return false;
+                }
+
+                if (! $this->valuesCompatible($transaction->account_number, $incoming['account_number'] ?? null)) {
+                    return false;
+                }
+
+                if (! $this->valuesCompatible($transaction->receipt_number, $incoming['receipt_number'] ?? null)) {
+                    return false;
+                }
+
+                foreach (['serial_number', 'engine_number', 'chassis_number', 'stock_code'] as $field) {
+                    if (! $this->valuesCompatible($transaction->{$field}, $incoming[$field] ?? null)) {
+                        return false;
+                    }
+                }
+
+                if (! $this->valuesCompatible($transaction->transaction_type, $transactionType)) {
+                    return false;
+                }
+
+                if ($this->effectiveAmountCents($transaction->toArray()) !== $incomingAmountCents) {
+                    return false;
+                }
+
+                return $this->productIdentityCompatible($transaction, $incoming);
+            })
+            ->values();
+    }
+
+    private function hasStrongIdentifier($transaction): bool
+    {
+        foreach (['account_number', 'receipt_number', 'serial_number', 'engine_number', 'chassis_number', 'stock_code'] as $field) {
+            if ($this->normalizeIdentityValue($transaction->{$field} ?? null) !== '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function valuesCompatible($existingValue, $incomingValue): bool
+    {
+        $existing = $this->normalizeIdentityValue($existingValue);
+        $incoming = $this->normalizeIdentityValue($incomingValue);
+
+        if ($existing === '' || $incoming === '') {
+            return true;
+        }
+
+        return $existing === $incoming;
+    }
+
+    private function effectiveAmountCents(array $data): ?int
+    {
+        foreach ([
+            'promissory_note_amount',
+            'cash_amount',
+            'gross_sales_amount',
+            'srp_cod_amount',
+            'amount',
+        ] as $field) {
+            $amount = $this->normalizeNumber($data[$field] ?? null);
+
+            if ($amount !== null && abs($amount) > 0.00001) {
+                return (int) round($amount * 100);
+            }
+        }
+
+        return null;
+    }
+
+    private function productIdentityCompatible($transaction, array $incoming): bool
+    {
+        $hasMatchingProductIdentity = false;
+
+        foreach (['model', 'product', 'parts_number'] as $field) {
+            $existing = $this->normalizeIdentityValue($transaction->{$field} ?? null);
+            $incomingValue = $this->normalizeIdentityValue($incoming[$field] ?? null);
+
+            if ($existing !== '' && $incomingValue !== '') {
+                if ($existing !== $incomingValue) {
+                    return false;
+                }
+
+                $hasMatchingProductIdentity = true;
+            }
+        }
+
+        $existingDescription = $this->normalizeIdentityValue($transaction->product_description ?? null);
+        $incomingDescription = $this->normalizeIdentityValue($incoming['product_description'] ?? null);
+
+        if ($existingDescription !== '' && $incomingDescription !== '') {
+            if ($existingDescription !== $incomingDescription) {
+                return false;
+            }
+
+            if ($this->isStructuredProductDescription($existingDescription)) {
+                $hasMatchingProductIdentity = true;
+            }
+        }
+
+        $existingProductLine = $this->normalizeIdentityValue($transaction->product_line_name ?? null);
+        $incomingProductLine = $this->normalizeIdentityValue($incoming['product_line_name'] ?? null);
+
+        if ($existingProductLine !== '' && $incomingProductLine !== '') {
+            if ($existingProductLine !== $incomingProductLine) {
+                return false;
+            }
+        }
+
+        return $hasMatchingProductIdentity;
+    }
+
+    private function isStructuredProductDescription(string $value): bool
+    {
+        return strlen($value) >= 5 && preg_match('/[A-Z]/', $value) && preg_match('/[0-9]/', $value);
     }
 
     private function normalizeDate($value): ?string
