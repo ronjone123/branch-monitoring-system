@@ -11,6 +11,9 @@ use App\Models\Location;
 use App\Models\SalesTransaction;
 use App\Models\User;
 use App\Services\Import\TransactionSheetParser;
+use App\Http\Middleware\EnsureUserHasRole;
+use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -413,6 +416,191 @@ class IncompleteTransactionMatchingTest extends TestCase
         $this->assertSame(0, ImportConflict::count());
     }
 
+    public function test_same_account_and_contact_with_different_full_customer_and_sale_details_imports_as_new_sale(): void
+    {
+        $this->createOldIncompleteTransaction([
+            'invoice_date' => '2026-04-14',
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'contact_number' => '09619882590',
+            'receipt_number' => 'SI-2210',
+            'product' => 'Brand New',
+            'product_line_name' => 'APPLIANCE',
+            'brand_name_raw' => 'SAMSUNG',
+            'model' => 'WASHER A',
+            'cash_amount' => 18463,
+            'amount' => 18463,
+        ]);
+
+        $sheet = $this->parseWorkbookRow($this->row([
+            'invoice_date' => '2026-04-15',
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, GERALD PEREZ',
+            'contact_number' => '09619882590',
+            'receipt_number' => 'DR-0231',
+            'product' => 'Repo',
+            'product_line_name' => 'APPLIANCE',
+            'brand_name' => 'SAMSUNG',
+            'model' => 'REF B',
+            'cash_amount' => 8531,
+            'amount' => 8531,
+        ]));
+
+        $this->assertSame(2, SalesTransaction::count());
+        $this->assertSame(1, (int) $sheet->fresh()->imported_rows);
+        $this->assertSame(0, (int) $sheet->fresh()->conflict_rows);
+        $this->assertSame(0, ImportConflict::count());
+        $this->assertTrue(SalesTransaction::where('customer_name', 'SALASPE, GERALD PEREZ')->exists());
+    }
+
+    public function test_same_account_and_exact_full_customer_name_still_creates_related_account_conflict(): void
+    {
+        $this->createOldIncompleteTransaction([
+            'account_number' => 'ACC-1001',
+            'customer_name' => 'Maria Santos',
+            'contact_number' => '09170000000',
+            'birth_date' => '1990-01-01',
+            'address' => 'Purok 1',
+            'city_municipality' => 'Gensan',
+            'receipt_number' => 'OR-OLD',
+        ]);
+
+        $sheet = $this->parseWorkbookRow($this->row([
+            'account_number' => 'ACC-1001',
+            'customer_name' => 'Maria Santos',
+            'receipt_number' => 'OR-NEW',
+        ]));
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame(0, (int) $sheet->fresh()->imported_rows);
+        $this->assertSame(1, (int) $sheet->fresh()->conflict_rows);
+        $this->assertSame('related_account_conflict', ImportConflict::first()->conflict_type);
+    }
+
+    public function test_same_account_and_same_receipt_still_creates_related_account_conflict(): void
+    {
+        $this->createOldIncompleteTransaction([
+            'account_number' => 'ACC-2002',
+            'customer_name' => 'First Customer',
+            'receipt_number' => 'OR-SAME-2002',
+            'engine_number' => 'ENG-OLD-2002',
+            'model' => 'CLICK 125',
+        ]);
+
+        $sheet = $this->parseWorkbookRow($this->row([
+            'account_number' => 'ACC-2002',
+            'customer_name' => 'Second Customer',
+            'receipt_number' => 'OR-SAME-2002',
+            'engine_number' => 'ENG-NEW-2002',
+            'model' => 'MIO 125',
+            'cash_amount' => 120000,
+            'amount' => 120000,
+        ]));
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame(0, (int) $sheet->fresh()->imported_rows);
+        $this->assertSame(1, (int) $sheet->fresh()->conflict_rows);
+        $this->assertSame('related_account_conflict', ImportConflict::first()->conflict_type);
+    }
+
+    public function test_related_account_conflict_can_be_imported_as_separate_transaction_once(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+
+        $existing = $this->createOldIncompleteTransaction([
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'contact_number' => '09619882590',
+            'receipt_number' => 'SI-2210',
+        ]);
+
+        $incomingRow = $this->row([
+            'invoice_date' => '2026-04-15',
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, GERALD PEREZ',
+            'contact_number' => '09619882590',
+            'receipt_number' => 'DR-0231',
+            'product' => 'Repo',
+            'model' => 'REF B',
+            'cash_amount' => 8531,
+            'amount' => 8531,
+        ]);
+
+        $conflict = $this->createRelatedAccountConflict($existing, $incomingRow);
+
+        $this->post(route('import-conflicts.import-separate', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $this->post(route('import-conflicts.import-separate', $conflict->fresh()))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $this->assertSame(2, SalesTransaction::count());
+
+        $imported = SalesTransaction::where('customer_name', 'SALASPE, GERALD PEREZ')->first();
+
+        $this->assertNotNull($imported);
+        $this->assertSame($conflict->import_batch_id, $imported->import_batch_id);
+        $this->assertSame($conflict->import_batch_sheet_id, $imported->import_batch_sheet_id);
+        $this->assertSame($this->branch->id, $imported->branch_id);
+        $this->assertSame(4, (int) $imported->source_row_number);
+        $this->assertNotNull($imported->match_key);
+        $this->assertNotNull($imported->row_hash);
+        $this->assertSame('resolved', $conflict->fresh()->status);
+    }
+
+    public function test_import_as_separate_customer_is_not_available_for_missing_from_latest_import(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+
+        $existing = $this->createOldIncompleteTransaction();
+        $conflict = $this->createRelatedAccountConflict($existing, $this->row([
+            'customer_name' => 'Separate Customer',
+            'receipt_number' => 'DR-0231',
+        ]), [
+            'conflict_type' => 'missing_from_latest_import',
+        ]);
+
+        $this->post(route('import-conflicts.import-separate', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame('pending', $conflict->fresh()->status);
+    }
+
+    public function test_import_as_separate_customer_refuses_empty_incoming_row_data(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+
+        $existing = $this->createOldIncompleteTransaction([
+            'account_number' => 'ACC-3003',
+            'customer_name' => 'Existing Customer',
+        ]);
+
+        $conflict = $this->createRelatedAccountConflict($existing, [], [
+            'incoming_row_data' => [],
+        ]);
+
+        $this->post(route('import-conflicts.import-separate', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict))
+            ->assertSessionHas('warning');
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame('Existing Customer', $existing->fresh()->customer_name);
+        $this->assertSame('pending', $conflict->fresh()->status);
+    }
+
     private function createOldIncompleteTransaction(array $overrides = []): SalesTransaction
     {
         return SalesTransaction::create(array_merge([
@@ -470,6 +658,37 @@ class IncompleteTransactionMatchingTest extends TestCase
             'source_type' => 'manual_upload',
             'status' => 'processed',
         ]);
+    }
+
+    private function createRelatedAccountConflict(
+        SalesTransaction $existing,
+        array $incomingRow,
+        array $overrides = []
+    ): ImportConflict {
+        $batch = $this->createBatch();
+
+        $sheet = ImportBatchSheet::create([
+            'import_batch_id' => $batch->id,
+            'branch_id' => $this->branch->id,
+            'sheet_name' => 'L4 GSC',
+            'sheet_type' => 'transaction',
+            'total_rows' => 1,
+            'status' => 'pending',
+        ]);
+
+        return ImportConflict::create(array_merge([
+            'import_batch_id' => $batch->id,
+            'import_batch_sheet_id' => $sheet->id,
+            'existing_sales_transaction_id' => $existing->id,
+            'branch_id' => $this->branch->id,
+            'conflict_type' => 'related_account_conflict',
+            'source_row_number' => 4,
+            'match_key' => 'held-related-account-conflict',
+            'new_row_hash' => null,
+            'existing_row_data' => $existing->raw_row_data,
+            'incoming_row_data' => $incomingRow,
+            'status' => 'pending',
+        ], $overrides));
     }
 
     private function writeWorkbook(string $path, string $sheetName, array $row): void
