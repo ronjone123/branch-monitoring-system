@@ -609,6 +609,12 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="import-conflict-alert">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         <div class="import-conflict-breadcrumb">
             <a href="{{ route('import-conflicts.index') }}">Import Conflicts</a>
             <span>/</span>
@@ -824,13 +830,28 @@
                     </div>
                     <div class="import-conflict-card-body">
                         <div class="import-conflict-action-stack">
-                            @if($importConflict->status === 'pending')
+                            @if($importConflict->status === 'pending' && $importConflict->conflict_type !== 'related_account_conflict')
                                 <form action="{{ route('import-conflicts.accept-update', $importConflict) }}" method="POST"
                                       onsubmit="return confirm('Apply incoming row data to the existing sales transaction?')">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="import-conflict-btn import-conflict-btn-primary w-100">
                                         Accept Incoming Update
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if(
+                                $importConflict->status === 'pending'
+                                    && $importConflict->conflict_type === 'related_account_conflict'
+                                    && !empty($incomingData)
+                                    && !($hasImportedIncomingTransaction ?? false)
+                            )
+                                <form action="{{ route('import-conflicts.import-separate', $importConflict) }}" method="POST"
+                                      onsubmit="return confirm('Import this incoming row as a separate sales transaction?')">
+                                    @csrf
+                                    <button type="submit" class="import-conflict-btn import-conflict-btn-primary w-100">
+                                        Confirm as Separate Customer / Import as New Transaction
                                     </button>
                                 </form>
                             @endif

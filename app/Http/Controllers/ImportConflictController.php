@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\ImportBatch;
 use App\Models\ImportConflict;
+use App\Services\Import\ImportConflictIncomingTransactionImporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RuntimeException;
 
 class ImportConflictController extends Controller
 {
@@ -48,6 +50,8 @@ class ImportConflictController extends Controller
 
     public function show(ImportConflict $importConflict): View
     {
+        $incomingTransactionImporter = app(ImportConflictIncomingTransactionImporter::class);
+
         $importConflict->load([
             'importBatch',
             'importBatchSheet',
@@ -118,11 +122,14 @@ class ImportConflictController extends Controller
             ];
         }
 
+        $hasImportedIncomingTransaction = $incomingTransactionImporter->hasImportedIncomingTransaction($importConflict);
+
         return view('import-conflicts.show', compact(
             'importConflict',
             'existingData',
             'incomingData',
-            'comparisonRows'
+            'comparisonRows',
+            'hasImportedIncomingTransaction'
         ));
     }
 
@@ -171,9 +178,26 @@ class ImportConflictController extends Controller
             ->with('success', 'Conflict deleted successfully.');
     }
 
+    public function importSeparate(ImportConflict $importConflict): RedirectResponse
+    {
+        $incomingTransactionImporter = app(ImportConflictIncomingTransactionImporter::class);
+
+        try {
+            $transaction = $incomingTransactionImporter->importAsSeparateTransaction($importConflict);
+        } catch (RuntimeException $exception) {
+            return redirect()
+                ->route('import-conflicts.show', $importConflict->getKey())
+                ->with('warning', $exception->getMessage());
+        }
+
+        return redirect()
+            ->route('import-conflicts.show', $importConflict->getKey())
+            ->with('success', "Incoming row imported as separate sales transaction #{$transaction->id}.");
+    }
+
     public function acceptIncomingUpdate(ImportConflict $importConflict): RedirectResponse
     {
-        if (in_array($importConflict->conflict_type, ['missing_from_latest_import', 'data_quality_conflict'], true)) {
+        if (in_array($importConflict->conflict_type, ['missing_from_latest_import', 'data_quality_conflict', 'related_account_conflict'], true)) {
             return redirect()
                 ->route('import-conflicts.show', $importConflict)
                 ->with('success', 'This conflict type cannot be accepted as an incoming update. Please review, ignore, or mark it resolved.');

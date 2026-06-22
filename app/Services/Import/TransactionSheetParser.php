@@ -441,8 +441,9 @@ class TransactionSheetParser
             |
             | Rules:
             | - same account + same row_hash = duplicate
-            | - same account + same customer/contact/receipt = conflict/manual review
-            | - same account only, but different customer/contact/receipt = allow as new
+            | - same account + exact full customer name = conflict/manual review
+            | - same account + same receipt = conflict/manual review
+            | - same account/contact only, but different customer/receipt = allow as new
             |--------------------------------------------------------------------------
             */
             if ($accountNumber) {
@@ -460,24 +461,19 @@ class TransactionSheetParser
                     }
 
                     $normalizedCustomer = $this->normalizeIdentityValue($customerName);
-                    $normalizedContact = $this->normalizeIdentityValue($contactNumber);
                     $normalizedReceipt = $this->normalizeIdentityValue($receiptNumber);
 
                     $relatedAccountMatches = $accountMatches->filter(function ($transaction) use (
                         $normalizedCustomer,
-                        $normalizedContact,
                         $normalizedReceipt
                     ) {
                         $sameCustomer = $normalizedCustomer !== ''
                             && $this->normalizeIdentityValue($transaction->customer_name) === $normalizedCustomer;
 
-                        $sameContact = $normalizedContact !== ''
-                            && $this->normalizeIdentityValue($transaction->contact_number) === $normalizedContact;
-
                         $sameReceipt = $normalizedReceipt !== ''
                             && $this->normalizeIdentityValue($transaction->receipt_number) === $normalizedReceipt;
 
-                        return $sameCustomer || $sameContact || $sameReceipt;
+                        return $sameCustomer || $sameReceipt;
                     });
 
                     if ($relatedAccountMatches->isNotEmpty()) {

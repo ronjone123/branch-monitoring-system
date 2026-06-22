@@ -126,6 +126,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/import-conflicts/{importConflict}/accept-update', [ImportConflictController::class, 'acceptIncomingUpdate'])
             ->name('import-conflicts.accept-update');
 
+        Route::post('/import-conflicts/{importConflict}/import-separate', [ImportConflictController::class, 'importSeparate'])
+            ->name('import-conflicts.import-separate');
+
         Route::patch('/import-conflicts/{importConflict}/mark-resolved', [ImportConflictController::class, 'markResolved'])
             ->name('import-conflicts.mark-resolved');
 
