@@ -164,6 +164,12 @@
             color: #166534;
         }
 
+        .import-show-alert-warning {
+            background: #fffbeb;
+            border: 1px solid rgba(245, 158, 11, 0.24);
+            color: #92400e;
+        }
+
         .import-show-alert-info {
             display: flex;
             align-items: center;
@@ -790,12 +796,17 @@
         });
 
         $conflictCount = (int) ($importBatch->conflict_rows ?? 0);
+        $missingConflictCount = (int) ($missingFromLatestConflictCount ?? 0);
         $errorCount = $importBatch->errors->count();
         $skippedRows = (int) ($importBatch->skipped_rows ?? 0);
         $invalidRows = (int) ($importBatch->invalid_rows ?? 0);
         $duplicateRows = (int) ($importBatch->duplicate_rows ?? 0);
         $hasQualityIssues = $conflictCount > 0 || $errorCount > 0 || $skippedRows > 0 || $invalidRows > 0 || $duplicateRows > 0;
         $canAccessImportConflicts = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
+        $canRunMissingReview = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer'])
+            && $batchStatus === 'imported'
+            && ($hasImportedTransactions ?? false)
+            && ! $batchIsBusy;
 
         $timelineSteps = [
             ['key' => 'uploaded', 'label' => 'Uploaded', 'meta' => 'Batch file registered.'],
@@ -819,6 +830,15 @@
         @if(session('success'))
             <div class="import-show-alert import-show-alert-success">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div class="import-show-alert import-show-alert-warning">
+                {{ session('warning') }}
+                @if(session('warning_detail'))
+                    <div class="small mt-1 fw-semibold">{{ session('warning_detail') }}</div>
+                @endif
             </div>
         @endif
 
@@ -1054,6 +1074,49 @@
                 </div>
             </section>
         </div>
+
+        <section class="import-review-card mb-3">
+            <div class="import-card-header">
+                <div>
+                    <h2 class="import-card-title">Missing From Latest Import Review</h2>
+                    <p class="import-card-subtitle">
+                        Flags previous transactions that are not present in this latest comparable import. This does not delete or change sales totals.
+                    </p>
+                </div>
+                <div class="import-action-stack">
+                    <form action="{{ route('import-batches.check-missing-from-latest', $importBatch) }}" method="POST"
+                        onsubmit="return confirm('Check this batch against the previous comparable import? This creates audit-only review flags and does not change sales totals.')">
+                        @csrf
+                        <button type="submit" class="import-show-btn import-show-btn-primary" @disabled(! $canRunMissingReview)>
+                            Check Missing From Previous Import
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="import-card-body">
+                <div class="import-meta-grid">
+                    <div class="import-detail-item">
+                        <div class="import-detail-label">Missing Review Flags</div>
+                        <div class="import-detail-value">{{ number_format($missingConflictCount) }}</div>
+                    </div>
+                    <div class="import-detail-item">
+                        <div class="import-detail-label">Review Status</div>
+                        <div class="import-detail-value">{{ $canRunMissingReview ? 'Ready to scan' : 'Unavailable' }}</div>
+                    </div>
+                </div>
+
+                <div class="import-quality-message review mt-3">
+                    This is an audit-only review. Missing flags do not remove transactions, hide transactions, or change dashboard/report totals.
+                    @if($canAccessImportConflicts && $missingConflictCount > 0)
+                        <div class="mt-3">
+                            <a href="{{ route('import-conflicts.index', ['import_batch_id' => $importBatch->id, 'status' => 'all']) }}" class="import-show-btn import-show-btn-secondary">
+                                Review Missing Flags
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </section>
 
         <section class="import-review-card mb-3">
             <div class="import-card-header">

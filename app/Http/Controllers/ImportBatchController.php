@@ -9,6 +9,7 @@ use App\Models\ImportConflict;
 use App\Models\SalesTransaction;
 use App\Services\Import\ImportBatchPreviewService;
 use App\Services\Import\ImportBatchProcessor;
+use App\Services\Import\MissingFromLatestImportDetector;
 use App\Services\Import\TransactionSheetParser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -72,10 +73,43 @@ class ImportBatchController extends Controller
             ->limit(10)
             ->get();
 
+        $missingFromLatestConflictCount = ImportConflict::query()
+            ->where('import_batch_id', $import_batch->id)
+            ->where('conflict_type', 'missing_from_latest_import')
+            ->count();
+
+        $hasImportedTransactions = $import_batch->transactions()->exists();
+
         return view('import-batches.show', [
             'importBatch' => $import_batch,
             'importedTransactions' => $importedTransactions,
+            'missingFromLatestConflictCount' => $missingFromLatestConflictCount,
+            'hasImportedTransactions' => $hasImportedTransactions,
         ]);
+    }
+
+    public function checkMissingFromLatest(
+        ImportBatch $import_batch,
+        MissingFromLatestImportDetector $detector
+    ): RedirectResponse {
+        $summary = $detector->scan($import_batch);
+
+        $message = sprintf(
+            'Missing-from-latest review completed: %s new flag(s), %s existing flag(s), %s skipped group(s).',
+            number_format((int) $summary['created']),
+            number_format((int) $summary['existing']),
+            number_format((int) $summary['skipped_groups'])
+        );
+
+        $redirect = redirect()
+            ->route('import-batches.show', $import_batch)
+            ->with($summary['created'] > 0 ? 'success' : 'warning', $message);
+
+        if (! empty($summary['warnings'])) {
+            $redirect->with('warning_detail', implode(' ', $summary['warnings']));
+        }
+
+        return $redirect;
     }
 
     public function previewSheet(
