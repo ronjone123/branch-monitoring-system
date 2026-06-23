@@ -197,20 +197,33 @@ class ImportConflictController extends Controller
 
     public function acceptIncomingUpdate(ImportConflict $importConflict): RedirectResponse
     {
-        if (in_array($importConflict->conflict_type, ['missing_from_latest_import', 'data_quality_conflict', 'related_account_conflict'], true)) {
+        if (in_array($importConflict->conflict_type, ['missing_from_latest_import', 'data_quality_conflict'], true)) {
             return redirect()
                 ->route('import-conflicts.show', $importConflict)
-                ->with('success', 'This conflict type cannot be accepted as an incoming update. Please review, ignore, or mark it resolved.');
+                ->with('warning', 'This conflict type cannot be accepted as an incoming update. Please review, ignore, or mark it resolved.');
         }
+
+        if ($importConflict->status !== 'pending') {
+            return redirect()
+                ->route('import-conflicts.show', $importConflict)
+                ->with('warning', 'This conflict has already been reviewed or resolved.');
+        }
+
         $transaction = $importConflict->existingSalesTransaction;
 
         if (! $transaction) {
             return redirect()
                 ->route('import-conflicts.show', $importConflict)
-                ->with('success', 'No existing sales transaction found for this conflict.');
+                ->with('warning', 'No existing sales transaction found for this conflict.');
         }
 
         $cells = $importConflict->incoming_row_data ?? [];
+
+        if (empty($cells)) {
+            return redirect()
+                ->route('import-conflicts.show', $importConflict)
+                ->with('warning', 'No incoming row data is available for this conflict.');
+        }
 
         $invoiceDate = $this->normalizeDate($cells[0] ?? null);
         $accountNumber = $this->toString($cells[1] ?? null);
