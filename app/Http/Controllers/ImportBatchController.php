@@ -79,12 +79,18 @@ class ImportBatchController extends Controller
             ->count();
 
         $hasImportedTransactions = $import_batch->transactions()->exists();
+        $hasTransactionSheetActivity = $import_batch->sheets
+            ->where('sheet_type', 'transaction')
+            ->whereNotNull('branch_id')
+            ->contains(fn (ImportBatchSheet $sheet): bool => ((int) ($sheet->imported_rows ?? 0)) > 0
+                || ((int) ($sheet->duplicate_rows ?? 0)) > 0);
 
         return view('import-batches.show', [
             'importBatch' => $import_batch,
             'importedTransactions' => $importedTransactions,
             'missingFromLatestConflictCount' => $missingFromLatestConflictCount,
             'hasImportedTransactions' => $hasImportedTransactions,
+            'hasTransactionSheetActivity' => $hasTransactionSheetActivity,
         ]);
     }
 

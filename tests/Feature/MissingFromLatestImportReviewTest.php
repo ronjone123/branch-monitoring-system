@@ -9,11 +9,16 @@ use App\Models\ImportBatch;
 use App\Models\ImportBatchSheet;
 use App\Models\ImportConflict;
 use App\Models\Location;
+use App\Models\Role;
 use App\Models\SalesTransaction;
+use App\Models\User;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class MissingFromLatestImportReviewTest extends TestCase
@@ -23,6 +28,8 @@ class MissingFromLatestImportReviewTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('local');
 
         $this->prepareDatabase();
 
@@ -43,6 +50,18 @@ class MissingFromLatestImportReviewTest extends TestCase
             'display_name' => 'Lucky 4 Gensan',
             'spreadsheet_sheet_name' => 'L4 GSC',
         ]);
+
+        $role = Role::create([
+            'code' => 'admin',
+            'name' => 'Admin',
+        ]);
+
+        $this->actingAs(User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.test',
+            'password' => 'password',
+            'role_id' => $role->id,
+        ]));
 
         $this->withoutMiddleware([
             Authenticate::class,
@@ -229,6 +248,100 @@ class MissingFromLatestImportReviewTest extends TestCase
         $this->assertSame(0, ImportConflict::count());
     }
 
+    public function test_duplicate_only_latest_batch_can_create_missing_conflict_from_observed_workbook_rows(): void
+    {
+        $previous = $this->createBatch(importedAt: '2026-05-01 08:00:00');
+        $latest = $this->createDuplicateOnlyBatch([
+            $this->row(['receipt_number' => 'OR-1', 'account_number' => 'ACC-1']),
+            $this->row(['receipt_number' => 'OR-2', 'account_number' => 'ACC-2']),
+        ]);
+
+        $this->createTransaction($previous, ['receipt_number' => 'OR-1', 'account_number' => 'ACC-1']);
+        $this->createTransaction($previous, ['receipt_number' => 'OR-2', 'account_number' => 'ACC-2']);
+        $missing = $this->createTransaction($previous, ['receipt_number' => 'OR-3', 'account_number' => 'ACC-3']);
+
+        $this->post(route('import-batches.check-missing-from-latest', $latest))
+            ->assertRedirect(route('import-batches.show', $latest));
+
+        $this->assertSame(0, $latest->transactions()->count());
+        $this->assertSame(1, ImportConflict::where('conflict_type', 'missing_from_latest_import')->count());
+        $this->assertSame($missing->id, ImportConflict::first()->existing_sales_transaction_id);
+    }
+
+    public function test_duplicate_only_latest_batch_with_all_observed_rows_present_creates_no_conflicts(): void
+    {
+        $previous = $this->createBatch(importedAt: '2026-05-01 08:00:00');
+        $latest = $this->createDuplicateOnlyBatch([
+            $this->row(['receipt_number' => 'OR-1', 'account_number' => 'ACC-1']),
+            $this->row(['receipt_number' => 'OR-2', 'account_number' => 'ACC-2']),
+            $this->row(['receipt_number' => 'OR-3', 'account_number' => 'ACC-3']),
+        ]);
+
+        $this->createTransaction($previous, ['receipt_number' => 'OR-1', 'account_number' => 'ACC-1']);
+        $this->createTransaction($previous, ['receipt_number' => 'OR-2', 'account_number' => 'ACC-2']);
+        $this->createTransaction($previous, ['receipt_number' => 'OR-3', 'account_number' => 'ACC-3']);
+
+        $this->post(route('import-batches.check-missing-from-latest', $latest))
+            ->assertSessionHas('warning');
+
+        $this->assertSame(0, $latest->transactions()->count());
+        $this->assertSame(0, ImportConflict::count());
+    }
+
+    public function test_duplicate_only_parsed_batch_has_extractable_latest_rows_for_button_eligibility(): void
+    {
+        $latest = $this->createDuplicateOnlyBatch([
+            $this->row(['receipt_number' => 'OR-1', 'account_number' => 'ACC-1']),
+        ]);
+
+        $this->get(route('import-batches.show', $latest))
+            ->assertOk()
+            ->assertSee('Ready to scan')
+            ->assertSee('Latest Row Source')
+            ->assertSee('Available');
+    }
+
+    public function test_batch_with_no_sales_transactions_and_no_extractable_latest_rows_returns_warning(): void
+    {
+        $latest = $this->createBatch(importedAt: '2026-05-02 08:00:00');
+        ImportBatchSheet::create([
+            'import_batch_id' => $latest->id,
+            'branch_id' => $this->branch->id,
+            'sheet_name' => 'L4 GSC',
+            'sheet_type' => 'transaction',
+            'status' => 'imported',
+            'duplicate_rows' => 0,
+            'imported_rows' => 0,
+        ]);
+
+        $this->post(route('import-batches.check-missing-from-latest', $latest))
+            ->assertSessionHas('warning')
+            ->assertSessionHas('warning_detail');
+
+        $this->assertSame(0, ImportConflict::count());
+    }
+
+    public function test_row_count_guard_uses_latest_observed_workbook_row_count(): void
+    {
+        $previous = $this->createBatch(importedAt: '2026-05-01 08:00:00');
+        $latest = $this->createDuplicateOnlyBatch([
+            $this->row(['receipt_number' => 'OR-LATEST-1', 'account_number' => 'ACC-LATEST-1']),
+        ]);
+
+        foreach (range(1, 4) as $index) {
+            $this->createTransaction($previous, [
+                'receipt_number' => "OR-PREV-{$index}",
+                'account_number' => "ACC-PREV-{$index}",
+                'invoice_date' => "2026-04-1{$index}",
+            ]);
+        }
+
+        $this->post(route('import-batches.check-missing-from-latest', $latest))
+            ->assertSessionHas('warning');
+
+        $this->assertSame(0, ImportConflict::count());
+    }
+
     private function createComparableBatches(): array
     {
         return [
@@ -242,11 +355,30 @@ class MissingFromLatestImportReviewTest extends TestCase
         return ImportBatch::create([
             'uploaded_by' => 1,
             'original_filename' => 'test.xlsx',
-            'stored_filename' => 'imports/test.xlsx',
+            'stored_filename' => 'imports/test-' . uniqid('', true) . '.xlsx',
             'source_type' => 'manual_upload',
             'status' => $status,
             'imported_at' => $importedAt,
         ]);
+    }
+
+    private function createDuplicateOnlyBatch(array $rows): ImportBatch
+    {
+        $batch = $this->createBatch(importedAt: '2026-05-02 08:00:00');
+
+        ImportBatchSheet::create([
+            'import_batch_id' => $batch->id,
+            'branch_id' => $this->branch->id,
+            'sheet_name' => 'L4 GSC',
+            'sheet_type' => 'transaction',
+            'status' => 'imported',
+            'duplicate_rows' => count($rows),
+            'imported_rows' => 0,
+        ]);
+
+        $this->writeWorkbook($batch->stored_filename, 'L4 GSC', $rows);
+
+        return $batch;
     }
 
     private function createTransaction(ImportBatch $batch, array $overrides = []): SalesTransaction
@@ -285,12 +417,32 @@ class MissingFromLatestImportReviewTest extends TestCase
     private function prepareDatabase(): void
     {
         Schema::dropIfExists('import_conflicts');
+        Schema::dropIfExists('import_errors');
         Schema::dropIfExists('sales_transactions');
         Schema::dropIfExists('import_batch_sheets');
         Schema::dropIfExists('import_batches');
         Schema::dropIfExists('branches');
         Schema::dropIfExists('locations');
         Schema::dropIfExists('business_units');
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('roles');
+
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->string('name');
+            $table->string('status')->default('active');
+            $table->timestamps();
+        });
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('role_id')->nullable();
+            $table->string('name');
+            $table->string('email');
+            $table->string('password');
+            $table->timestamps();
+        });
 
         Schema::create('business_units', function (Blueprint $table) {
             $table->id();
@@ -380,6 +532,13 @@ class MissingFromLatestImportReviewTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('import_errors', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('import_batch_id');
+            $table->foreignId('import_batch_sheet_id')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('import_conflicts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('import_batch_id');
@@ -396,5 +555,111 @@ class MissingFromLatestImportReviewTest extends TestCase
             $table->text('notes')->nullable();
             $table->timestamps();
         });
+    }
+
+    private function row(array $overrides = []): array
+    {
+        $data = array_merge([
+            'invoice_date' => '2026-04-10',
+            'account_number' => 'ACC-1001',
+            'customer_name' => 'Test Customer',
+            'contact_number' => null,
+            'birth_date' => null,
+            'address' => null,
+            'city_municipality' => null,
+            'sales_type' => null,
+            'agent_referral_name' => null,
+            'transaction_type' => 'Cash Sales',
+            'receipt_number' => 'OR-1001',
+            'sales_source' => null,
+            'product' => 'Brand New',
+            'product_line_name' => 'MOTORCYCLE',
+            'category_name' => null,
+            'brand_name' => 'HONDA',
+            'model' => 'CLICK 125',
+            'capacity' => null,
+            'product_description' => null,
+            'serial_number' => null,
+            'engine_number' => null,
+            'chassis_number' => null,
+            'parts_number' => null,
+            'color' => null,
+            'stock_code' => null,
+            'product_remarks' => null,
+            'amount' => 100000,
+            'cash_amount' => null,
+            'downpayment_amount' => null,
+            'promissory_note_amount' => 100000,
+            'gross_sales_amount' => null,
+            'commission_amount' => null,
+            'monthly_amortization' => null,
+            'terms' => null,
+            'branch_name_from_sheet' => null,
+            'pouching_date' => null,
+            'encoded_by' => null,
+            'date_last_updated' => null,
+        ], $overrides);
+
+        return [
+            $data['invoice_date'],
+            $data['account_number'],
+            $data['customer_name'],
+            $data['contact_number'],
+            $data['birth_date'],
+            $data['address'],
+            $data['city_municipality'],
+            $data['sales_type'],
+            $data['agent_referral_name'],
+            $data['transaction_type'],
+            $data['receipt_number'],
+            $data['sales_source'],
+            $data['product'],
+            $data['product_line_name'],
+            $data['category_name'],
+            $data['brand_name'],
+            $data['model'],
+            $data['capacity'],
+            $data['product_description'],
+            $data['serial_number'],
+            $data['engine_number'],
+            $data['chassis_number'],
+            $data['parts_number'],
+            $data['color'],
+            $data['stock_code'],
+            $data['product_remarks'],
+            $data['amount'],
+            $data['cash_amount'],
+            $data['downpayment_amount'],
+            $data['promissory_note_amount'],
+            $data['gross_sales_amount'],
+            $data['commission_amount'],
+            $data['monthly_amortization'],
+            $data['terms'],
+            $data['branch_name_from_sheet'],
+            $data['pouching_date'],
+            $data['encoded_by'],
+            $data['date_last_updated'],
+        ];
+    }
+
+    private function writeWorkbook(string $path, string $sheetName, array $rows): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $worksheet = $spreadsheet->getActiveSheet();
+        $worksheet->setTitle($sheetName);
+
+        foreach ($rows as $index => $row) {
+            $worksheet->fromArray($row, null, 'A' . ($index + 4));
+        }
+
+        $fullPath = Storage::disk('local')->path($path);
+        $directory = dirname($fullPath);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        (new Xlsx($spreadsheet))->save($fullPath);
+        $spreadsheet->disconnectWorksheets();
     }
 }
