@@ -797,6 +797,7 @@
 
         $conflictCount = (int) ($importBatch->conflict_rows ?? 0);
         $missingConflictCount = (int) ($missingFromLatestConflictCount ?? 0);
+        $hasReviewableLatestRows = ($hasImportedTransactions ?? false) || ($hasTransactionSheetActivity ?? false);
         $errorCount = $importBatch->errors->count();
         $skippedRows = (int) ($importBatch->skipped_rows ?? 0);
         $invalidRows = (int) ($importBatch->invalid_rows ?? 0);
@@ -805,7 +806,7 @@
         $canAccessImportConflicts = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
         $canRunMissingReview = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer'])
             && $batchStatus === 'imported'
-            && ($hasImportedTransactions ?? false)
+            && $hasReviewableLatestRows
             && ! $batchIsBusy;
 
         $timelineSteps = [
@@ -1102,6 +1103,10 @@
                     <div class="import-detail-item">
                         <div class="import-detail-label">Review Status</div>
                         <div class="import-detail-value">{{ $canRunMissingReview ? 'Ready to scan' : 'Unavailable' }}</div>
+                    </div>
+                    <div class="import-detail-item">
+                        <div class="import-detail-label">Latest Row Source</div>
+                        <div class="import-detail-value">{{ $hasReviewableLatestRows ? 'Available' : 'None found' }}</div>
                     </div>
                 </div>
 

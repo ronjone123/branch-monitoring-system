@@ -11,6 +11,11 @@ use Illuminate\Support\Collection;
 
 class MissingFromLatestImportDetector
 {
+    public function __construct(
+        private readonly LatestImportRowKeyExtractor $latestImportRowKeyExtractor
+    ) {
+    }
+
     public function scan(ImportBatch $latestBatch): array
     {
         $summary = [
@@ -26,22 +31,19 @@ class MissingFromLatestImportDetector
             return $summary;
         }
 
-        $latestTransactions = $latestBatch->transactions()
-            ->whereNotNull('branch_id')
-            ->whereNotNull('invoice_date')
-            ->get();
+        $latestRows = $this->latestImportRowKeyExtractor->extract($latestBatch);
 
-        if ($latestTransactions->isEmpty()) {
-            $summary['warnings'][] = 'No imported transactions are linked to this batch.';
+        if ($latestRows->isEmpty()) {
+            $summary['warnings'][] = 'Missing review unavailable because no comparable latest transaction rows were found.';
 
             return $summary;
         }
 
-        $latestGroups = $latestTransactions->groupBy(function (SalesTransaction $transaction): string {
-            return $this->groupKey((int) $transaction->branch_id, $this->invoiceMonth($transaction));
+        $latestGroups = $latestRows->groupBy(function (array $row): string {
+            return $this->groupKey((int) $row['branch_id'], (string) $row['invoice_month']);
         });
 
-        foreach ($latestGroups as $groupKey => $latestGroupTransactions) {
+        foreach ($latestGroups as $groupKey => $latestGroupRows) {
             [$branchId, $invoiceMonth] = explode('|', $groupKey, 2);
             $branchId = (int) $branchId;
 
@@ -55,7 +57,7 @@ class MissingFromLatestImportDetector
 
             $previousTransactions = $this->transactionsForGroup($previousBatch, $branchId, $invoiceMonth);
             $previousCount = $previousTransactions->count();
-            $latestCount = $latestGroupTransactions->count();
+            $latestCount = $latestGroupRows->count();
 
             if ($previousCount > 0 && $latestCount < ($previousCount * 0.5)) {
                 $summary['skipped_groups']++;
@@ -64,8 +66,8 @@ class MissingFromLatestImportDetector
                 continue;
             }
 
-            $latestKeys = $this->matchingKeys($latestGroupTransactions);
-            $latestSheetId = $latestGroupTransactions->first()?->import_batch_sheet_id;
+            $latestKeys = $this->matchingKeys($latestGroupRows);
+            $latestSheetId = $latestGroupRows->first()['source_sheet_id'] ?? null;
 
             foreach ($previousTransactions as $previousTransaction) {
                 if ($this->hasMatchingLatestTransaction($previousTransaction, $latestKeys)) {
@@ -134,7 +136,7 @@ class MissingFromLatestImportDetector
             ->get();
     }
 
-    private function matchingKeys(Collection $transactions): array
+    private function matchingKeys(Collection $latestRows): array
     {
         $keys = [
             'receipt' => [],
@@ -142,21 +144,21 @@ class MissingFromLatestImportDetector
             'account_date_amount' => [],
         ];
 
-        foreach ($transactions as $transaction) {
-            $receipt = $this->normalizeIdentityValue($transaction->receipt_number);
+        foreach ($latestRows as $row) {
+            $receipt = $this->normalizeIdentityValue($row['receipt_number'] ?? null);
             if ($receipt !== '') {
-                $keys['receipt'][$this->receiptKey((int) $transaction->branch_id, $receipt)] = true;
+                $keys['receipt'][$this->receiptKey((int) $row['branch_id'], $receipt)] = true;
             }
 
-            $account = $this->normalizeIdentityValue($transaction->account_number);
-            $date = $this->invoiceDate($transaction);
+            $account = $this->normalizeIdentityValue($row['account_number'] ?? null);
+            $date = $row['invoice_date'] ?? null;
 
             if ($account !== '' && $date !== null) {
-                $keys['account_date'][$this->accountDateKey((int) $transaction->branch_id, $account, $date)] = true;
+                $keys['account_date'][$this->accountDateKey((int) $row['branch_id'], $account, $date)] = true;
 
-                $amountCents = $this->effectiveAmountCents($transaction);
+                $amountCents = $row['amount_cents'] ?? null;
                 if ($amountCents !== null) {
-                    $keys['account_date_amount'][$this->accountDateAmountKey((int) $transaction->branch_id, $account, $date, $amountCents)] = true;
+                    $keys['account_date_amount'][$this->accountDateAmountKey((int) $row['branch_id'], $account, $date, $amountCents)] = true;
                 }
             }
         }
