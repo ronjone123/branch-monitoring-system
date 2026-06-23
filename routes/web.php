@@ -98,6 +98,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         )->name('import-batches.parse-all');
 
         Route::post(
+            'import-batches/{import_batch}/check-missing-from-latest',
+            [ImportBatchController::class, 'checkMissingFromLatest']
+        )->name('import-batches.check-missing-from-latest');
+
+        Route::post(
             'import-batch-sheets/{import_batch_sheet}/reset',
             [ImportBatchController::class, 'resetSheet']
         )->name('import-batch-sheets.reset');
