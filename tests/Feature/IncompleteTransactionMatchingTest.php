@@ -510,6 +510,7 @@ class IncompleteTransactionMatchingTest extends TestCase
             EnsureEmailIsVerified::class,
             EnsureUserHasRole::class,
         ]);
+        $this->actingAs($this->user);
 
         $existing = $this->createOldIncompleteTransaction([
             'account_number' => 'GSC01262',
@@ -552,6 +553,82 @@ class IncompleteTransactionMatchingTest extends TestCase
         $this->assertSame('resolved', $conflict->fresh()->status);
     }
 
+    public function test_related_account_conflict_shows_both_manual_resolution_choices(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $existing = $this->createOldIncompleteTransaction([
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'receipt_number' => 'SI-2210',
+        ]);
+
+        $conflict = $this->createRelatedAccountConflict($existing, $this->row([
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'receipt_number' => 'SI-2210',
+            'serial_number' => 'SERIAL-CORRECTED',
+        ]));
+
+        $this->get(route('import-conflicts.show', $conflict))
+            ->assertOk()
+            ->assertSee('Apply Newest Data / Accept Incoming Update')
+            ->assertSee('Import as Separate Transaction / Confirm as Separate Customer')
+            ->assertSee('Use Apply Newest Data when the latest import corrects the existing sale.');
+    }
+
+    public function test_related_account_conflict_accept_update_applies_newest_unit_details_without_new_sale(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+
+        $existing = $this->createOldIncompleteTransaction([
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'receipt_number' => 'SI-2210',
+            'serial_number' => 'SERIAL-OLD',
+            'engine_number' => 'ENGINE-OLD',
+            'chassis_number' => 'CHASSIS-OLD',
+            'stock_code' => 'STOCK-OLD',
+        ]);
+
+        $conflict = $this->createRelatedAccountConflict($existing, $this->row([
+            'account_number' => 'GSC01262',
+            'customer_name' => 'SALASPE, RANDY PEREZ',
+            'receipt_number' => 'SI-2210',
+            'product' => 'Brand New',
+            'serial_number' => 'SERIAL-CORRECTED',
+            'engine_number' => 'ENGINE-CORRECTED',
+            'chassis_number' => 'CHASSIS-CORRECTED',
+            'stock_code' => 'STOCK-CORRECTED',
+        ]));
+
+        $this->patch(route('import-conflicts.accept-update', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict))
+            ->assertSessionHas('success');
+
+        $this->patch(route('import-conflicts.accept-update', $conflict->fresh()))
+            ->assertRedirect(route('import-conflicts.show', $conflict))
+            ->assertSessionHas('warning');
+
+        $updated = $existing->fresh();
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame('SERIAL-CORRECTED', $updated->serial_number);
+        $this->assertSame('ENGINE-CORRECTED', $updated->engine_number);
+        $this->assertSame('CHASSIS-CORRECTED', $updated->chassis_number);
+        $this->assertSame('STOCK-CORRECTED', $updated->stock_code);
+        $this->assertSame('resolved', $conflict->fresh()->status);
+    }
+
     public function test_import_as_separate_customer_is_not_available_for_missing_from_latest_import(): void
     {
         $this->withoutMiddleware([
@@ -572,6 +649,39 @@ class IncompleteTransactionMatchingTest extends TestCase
             ->assertRedirect(route('import-conflicts.show', $conflict));
 
         $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame('pending', $conflict->fresh()->status);
+    }
+
+    public function test_accept_update_is_not_available_for_missing_from_latest_import(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $existing = $this->createOldIncompleteTransaction([
+            'serial_number' => 'SERIAL-OLD',
+        ]);
+
+        $conflict = $this->createRelatedAccountConflict($existing, $this->row([
+            'serial_number' => 'SERIAL-CORRECTED',
+        ]), [
+            'conflict_type' => 'missing_from_latest_import',
+        ]);
+
+        $this->get(route('import-conflicts.show', $conflict))
+            ->assertOk()
+            ->assertDontSee('Apply Newest Data / Accept Incoming Update')
+            ->assertDontSee('Import as Separate Transaction / Confirm as Separate Customer');
+
+        $this->patch(route('import-conflicts.accept-update', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict))
+            ->assertSessionHas('warning');
+
+        $this->assertSame(1, SalesTransaction::count());
+        $this->assertSame('SERIAL-OLD', $existing->fresh()->serial_number);
         $this->assertSame('pending', $conflict->fresh()->status);
     }
 
