@@ -53,6 +53,44 @@ class SalesTransactionExportAuthorizationTest extends TestCase
             ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
     }
 
+    public function test_export_contains_expected_headers_and_transaction_data(): void
+    {
+        $this->actingAs($this->userWithRole('admin'));
+
+        $response = $this->get(route('sales-transactions.export'));
+
+        $response
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString('"Invoice Date","Account Number","Customer Name"', $csv);
+        $this->assertStringContainsString('Test Customer', $csv);
+        $this->assertStringContainsString('HONDA', $csv);
+        $this->assertStringContainsString('"CLICK 125"', $csv);
+        $this->assertStringContainsString('"Lucky 4 Gensan"', $csv);
+        $this->assertStringContainsString('"L4 GSC"', $csv);
+    }
+
+    public function test_export_respects_existing_filters(): void
+    {
+        $this->actingAs($this->userWithRole('admin'));
+
+        $response = $this->get(route('sales-transactions.export', [
+            'product_group' => 'appliance',
+        ]));
+
+        $response->assertOk();
+
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString('Appliance Customer', $csv);
+        $this->assertStringContainsString('SAMSUNG', $csv);
+        $this->assertStringNotContainsString('Test Customer', $csv);
+        $this->assertStringNotContainsString('HONDA', $csv);
+    }
+
     public function test_super_admin_can_see_and_access_sales_transactions_export(): void
     {
         $this->actingAs($this->userWithRole('super_admin'));
@@ -240,11 +278,21 @@ class SalesTransactionExportAuthorizationTest extends TestCase
             'imported_at' => now(),
         ]);
 
+        $sheet = $batch->sheets()->create([
+            'branch_id' => $branch->id,
+            'sheet_name' => 'L4 GSC',
+            'sheet_type' => 'transaction',
+            'status' => 'imported',
+        ]);
+
         SalesTransaction::create([
             'import_batch_id' => $batch->id,
+            'import_batch_sheet_id' => $sheet->id,
             'branch_id' => $branch->id,
             'invoice_date' => '2026-06-01',
+            'account_number' => 'ACC-001',
             'customer_name' => 'Test Customer',
+            'contact_number' => '09170000001',
             'transaction_type' => 'Cash Sales',
             'receipt_number' => 'OR-1',
             'unit_type' => 'Brand New',
@@ -253,6 +301,30 @@ class SalesTransactionExportAuthorizationTest extends TestCase
             'model' => 'CLICK 125',
             'cash_amount' => 100000,
             'srp_cod_amount' => 100000,
+            'source_row_number' => 4,
+            'encoded_by' => 'Encoder One',
+            'date_last_updated' => '2026-06-02',
+        ]);
+
+        SalesTransaction::create([
+            'import_batch_id' => $batch->id,
+            'import_batch_sheet_id' => $sheet->id,
+            'branch_id' => $branch->id,
+            'invoice_date' => '2026-06-03',
+            'account_number' => 'ACC-002',
+            'customer_name' => 'Appliance Customer',
+            'contact_number' => '09170000002',
+            'transaction_type' => 'Installment Sales',
+            'receipt_number' => 'OR-2',
+            'unit_type' => 'Brand New',
+            'product_line_name' => 'APPLIANCE',
+            'brand_name_raw' => 'SAMSUNG',
+            'model' => 'TV 55',
+            'promissory_note_amount' => 25000,
+            'srp_cod_amount' => 25000,
+            'source_row_number' => 5,
+            'encoded_by' => 'Encoder Two',
+            'date_last_updated' => '2026-06-04',
         ]);
     }
 
