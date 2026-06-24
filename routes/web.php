@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | Profile
     |--------------------------------------------------------------------------
     | Any authenticated and verified user can manage their own profile.
+    | Self-service account deletion is disabled in ProfileController.
     */
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
