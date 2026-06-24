@@ -419,7 +419,7 @@
     </style>
 
     @php
-        $canExportSalesTransactions = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer']);
+        $canExportSalesTransactions = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
         $selectedBranch = $branches->first(fn ($branch) => (string) $branch->id === (string) request('branch_id'));
         $selectedBatch = $importBatches->first(fn ($batch) => (string) $batch->id === (string) request('import_batch_id'));
         $sortLabels = [
@@ -462,7 +462,7 @@
                     <button type="button"
                             class="sales-btn sales-btn-secondary opacity-50"
                             disabled
-                            title="Export is only available for Super Admin, Admin, and Importer.">
+                            title="Export is only available for Super Admin and Admin.">
                         Export CSV
                     </button>
                 @endif
