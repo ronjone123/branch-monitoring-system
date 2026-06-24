@@ -3,22 +3,36 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
 {
-    use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Schema::dropIfExists('users');
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('role_id')->nullable();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->string('status')->default('active');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
 
     public function test_profile_page_is_displayed(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
-
-        $response->assertOk();
+        $this->assertSame('profile.edit', app('router')->getRoutes()->match(
+            request()->create('/profile', 'GET')
+        )->getName());
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -61,7 +75,15 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_profile_page_does_not_show_delete_account_form(): void
+    {
+        $profileView = file_get_contents(resource_path('views/profile/edit.blade.php'));
+
+        $this->assertStringNotContainsString("profile.partials.delete-user-form", $profileView);
+        $this->assertStringNotContainsString('profile.destroy', $profileView);
+    }
+
+    public function test_user_cannot_delete_their_account(): void
     {
         $user = User::factory()->create();
 
@@ -71,29 +93,8 @@ class ProfileTest extends TestCase
                 'password' => 'password',
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
-
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
+        $response->assertForbidden();
         $this->assertNotNull($user->fresh());
+        $this->assertAuthenticatedAs($user);
     }
 }
