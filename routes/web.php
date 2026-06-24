@@ -153,7 +153,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('sales-transactions.index');
     });
 
-    Route::middleware(['role:super_admin,admin,importer'])->group(function () {
+    Route::middleware(['role:super_admin,admin'])->group(function () {
         Route::get('/sales-transactions/export', [SalesTransactionController::class, 'export'])
             ->name('sales-transactions.export');
     });
