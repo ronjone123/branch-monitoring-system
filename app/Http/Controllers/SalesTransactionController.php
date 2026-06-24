@@ -77,10 +77,16 @@ class SalesTransactionController extends Controller
         $fileName = 'sales_transactions_' . now()->format('Ymd_His') . '.csv';
 
         $transactions = $this->applySorting(
-                $this->filteredQuery($request)->with(['branch', 'importBatch', 'importBatchSheet']),
+                $this->filteredQuery($request)
+                    ->leftJoin('branches as export_branches', 'export_branches.id', '=', 'sales_transactions.branch_id')
+                    ->leftJoin('import_batch_sheets as export_import_batch_sheets', 'export_import_batch_sheets.id', '=', 'sales_transactions.import_batch_sheet_id')
+                    ->select('sales_transactions.*')
+                    ->addSelect([
+                        'export_branches.display_name as export_branch_name',
+                        'export_import_batch_sheets.sheet_name as export_import_sheet_name',
+                    ]),
                 $request
-            )
-            ->get();
+            );
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -136,7 +142,7 @@ class SalesTransactionController extends Controller
                 'Created At',
             ]);
 
-            foreach ($transactions as $transaction) {
+            foreach ($transactions->cursor() as $transaction) {
                 fputcsv($handle, [
                     optional($transaction->invoice_date)->format('Y-m-d'),
                     $transaction->account_number,
@@ -172,9 +178,9 @@ class SalesTransactionController extends Controller
                     $transaction->commission_amount,
                     $transaction->monthly_amortization,
                     $transaction->terms,
-                    $transaction->branch->display_name ?? null,
+                    $transaction->export_branch_name,
                     $transaction->import_batch_id,
-                    $transaction->importBatchSheet->sheet_name ?? null,
+                    $transaction->export_import_sheet_name,
                     $transaction->source_row_number,
                     $transaction->encoded_by,
                     optional($transaction->date_last_updated)->format('Y-m-d'),
@@ -190,35 +196,35 @@ class SalesTransactionController extends Controller
     {
         return SalesTransaction::query()
             ->when($request->filled('branch_id'), function ($query) use ($request) {
-                $query->where('branch_id', $request->branch_id);
+                $query->where('sales_transactions.branch_id', $request->branch_id);
             })
             ->when($request->filled('import_batch_id'), function ($query) use ($request) {
-                $query->where('import_batch_id', $request->import_batch_id);
+                $query->where('sales_transactions.import_batch_id', $request->import_batch_id);
             })
             ->when($request->filled('product_group'), function ($query) use ($request) {
                 $productGroup = strtolower((string) $request->product_group);
 
                 if ($productGroup === 'motorcycle') {
-                    $query->whereRaw('UPPER(TRIM(product_line_name)) = ?', [
+                    $query->whereRaw('UPPER(TRIM(sales_transactions.product_line_name)) = ?', [
                         'MOTORCYCLE',
                     ]);
                 }
 
                 if ($productGroup === 'appliance') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.product_line_name))'), [
                         'APPLIANCE',
                         'APPLIANCES',
                     ]);
                 }
 
                 if ($productGroup === 'furniture') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.product_line_name))'), [
                         'FURNITURE',
                     ]);
                 }
 
                 if ($productGroup === 'bed_foam') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.product_line_name))'), [
                         'BED OR FOAM',
                         'BED FOAM',
                         'FOAM',
@@ -226,7 +232,7 @@ class SalesTransactionController extends Controller
                 }
 
                 if ($productGroup === 'non_motorcycle') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.product_line_name))'), [
                         'APPLIANCE',
                         'APPLIANCES',
                         'FURNITURE',
@@ -237,7 +243,7 @@ class SalesTransactionController extends Controller
                 }
 
                 if ($productGroup === 'spare_parts') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(product_line_name))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.product_line_name))'), [
                         'SPARE PARTS',
                         'SPARE PART',
                         'PARTS',
@@ -248,14 +254,14 @@ class SalesTransactionController extends Controller
                 $transactionType = strtolower((string) $request->transaction_type);
 
                 if ($transactionType === 'cash_sales') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(transaction_type))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.transaction_type))'), [
                         'CASH',
                         'CASH SALES',
                     ]);
                 }
 
                 if ($transactionType === 'installment_sales') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(transaction_type))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.transaction_type))'), [
                         'INSTALLMENT',
                         'INSTALLMENT SALES',
                     ]);
@@ -266,7 +272,7 @@ class SalesTransactionController extends Controller
                 $unitType = strtolower((string) $request->unit_type);
 
                 if ($unitType === 'repo') {
-                    $query->whereIn(DB::raw('UPPER(TRIM(unit_type))'), [
+                    $query->whereIn(DB::raw('UPPER(TRIM(sales_transactions.unit_type))'), [
                         'REPO',
                         'REPOSSESSED',
                         'REPOSSESSION',
@@ -275,9 +281,9 @@ class SalesTransactionController extends Controller
 
                 if ($unitType === 'brand_new') {
                     $query->where(function ($unitQuery) {
-                        $unitQuery->whereNull('unit_type')
-                            ->orWhere('unit_type', '')
-                            ->orWhereNotIn(DB::raw('UPPER(TRIM(unit_type))'), [
+                        $unitQuery->whereNull('sales_transactions.unit_type')
+                            ->orWhere('sales_transactions.unit_type', '')
+                            ->orWhereNotIn(DB::raw('UPPER(TRIM(sales_transactions.unit_type))'), [
                                 'REPO',
                                 'REPOSSESSED',
                                 'REPOSSESSION',
@@ -286,16 +292,16 @@ class SalesTransactionController extends Controller
                 }
             })
             ->when($request->filled('customer_name'), function ($query) use ($request) {
-                $query->where('customer_name', 'like', '%' . $request->customer_name . '%');
+                $query->where('sales_transactions.customer_name', 'like', '%' . $request->customer_name . '%');
             })
             ->when($request->filled('account_number'), function ($query) use ($request) {
-                $query->where('account_number', 'like', '%' . $request->account_number . '%');
+                $query->where('sales_transactions.account_number', 'like', '%' . $request->account_number . '%');
             })
             ->when($request->filled('date_from'), function ($query) use ($request) {
-                $query->whereDate('invoice_date', '>=', $request->date_from);
+                $query->whereDate('sales_transactions.invoice_date', '>=', $request->date_from);
             })
             ->when($request->filled('date_to'), function ($query) use ($request) {
-                $query->whereDate('invoice_date', '<=', $request->date_to);
+                $query->whereDate('sales_transactions.invoice_date', '<=', $request->date_to);
             });
     }
 
@@ -304,35 +310,35 @@ class SalesTransactionController extends Controller
         $sortBy = $request->get('sort_by', 'newest');
 
         return match ($sortBy) {
-            'oldest' => $query->orderBy('invoice_date', 'asc')
-                ->orderBy('id', 'asc'),
+            'oldest' => $query->orderBy('sales_transactions.invoice_date', 'asc')
+                ->orderBy('sales_transactions.id', 'asc'),
 
-            'customer_asc' => $query->orderBy('customer_name', 'asc')
-                ->orderBy('id', 'asc'),
+            'customer_asc' => $query->orderBy('sales_transactions.customer_name', 'asc')
+                ->orderBy('sales_transactions.id', 'asc'),
 
-            'customer_desc' => $query->orderBy('customer_name', 'desc')
-                ->orderBy('id', 'desc'),
+            'customer_desc' => $query->orderBy('sales_transactions.customer_name', 'desc')
+                ->orderBy('sales_transactions.id', 'desc'),
 
-            'pn_high' => $query->orderBy('promissory_note_amount', 'desc')
-                ->orderBy('id', 'desc'),
+            'pn_high' => $query->orderBy('sales_transactions.promissory_note_amount', 'desc')
+                ->orderBy('sales_transactions.id', 'desc'),
 
-            'pn_low' => $query->orderBy('promissory_note_amount', 'asc')
-                ->orderBy('id', 'asc'),
+            'pn_low' => $query->orderBy('sales_transactions.promissory_note_amount', 'asc')
+                ->orderBy('sales_transactions.id', 'asc'),
 
-            'cash_high' => $query->orderBy('cash_amount', 'desc')
-                ->orderBy('id', 'desc'),
+            'cash_high' => $query->orderBy('sales_transactions.cash_amount', 'desc')
+                ->orderBy('sales_transactions.id', 'desc'),
 
-            'cash_low' => $query->orderBy('cash_amount', 'asc')
-                ->orderBy('id', 'asc'),
+            'cash_low' => $query->orderBy('sales_transactions.cash_amount', 'asc')
+                ->orderBy('sales_transactions.id', 'asc'),
 
-            'srp_high' => $query->orderBy('srp_cod_amount', 'desc')
-                ->orderBy('id', 'desc'),
+            'srp_high' => $query->orderBy('sales_transactions.srp_cod_amount', 'desc')
+                ->orderBy('sales_transactions.id', 'desc'),
 
-            'srp_low' => $query->orderBy('srp_cod_amount', 'asc')
-                ->orderBy('id', 'asc'),
+            'srp_low' => $query->orderBy('sales_transactions.srp_cod_amount', 'asc')
+                ->orderBy('sales_transactions.id', 'asc'),
 
-            default => $query->orderBy('invoice_date', 'desc')
-                ->orderBy('id', 'desc'),
+            default => $query->orderBy('sales_transactions.invoice_date', 'desc')
+                ->orderBy('sales_transactions.id', 'desc'),
         };
     }
 }
