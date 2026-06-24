@@ -61,13 +61,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     | Super Admin only.
     */
-    Route::middleware(['role:super_admin'])->group(function () {
+    Route::middleware(['role:super_admin,admin'])->group(function () {
         Route::resource('branches', BranchController::class);
         Route::resource('business-units', BusinessUnitController::class)->except(['destroy']);
         Route::resource('locations', LocationController::class)->except(['destroy']);
         Route::resource('product-lines', ProductLineController::class)->except(['destroy']);
         Route::resource('categories', CategoryController::class)->except(['destroy']);
         Route::resource('brands', BrandController::class)->except(['destroy']);
+    });
+
+    Route::middleware(['role:super_admin'])->group(function () {
         Route::resource('users', UserController::class)->except(['destroy']);
     });
 
@@ -102,10 +105,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             [ImportBatchController::class, 'checkMissingFromLatest']
         )->name('import-batches.check-missing-from-latest');
 
-        Route::post(
-            'import-batch-sheets/{import_batch_sheet}/reset',
-            [ImportBatchController::class, 'resetSheet']
-        )->name('import-batch-sheets.reset');
     });
 
 
@@ -113,9 +112,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     | Import Conflicts
     |--------------------------------------------------------------------------
-    | Super Admin and Admin only.
+    | Super Admin, Admin, and Importer can review conflicts.
     */
-    Route::middleware(['role:super_admin,admin'])->group(function () {
+    Route::middleware(['role:super_admin,admin,importer'])->group(function () {
         Route::get('/import-conflicts', [ImportConflictController::class, 'index'])
             ->name('import-conflicts.index');
 
@@ -136,9 +135,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::patch('/import-conflicts/{importConflict}/mark-resolved', [ImportConflictController::class, 'markResolved'])
             ->name('import-conflicts.mark-resolved');
+    });
 
+    Route::middleware(['role:super_admin,admin'])->group(function () {
         Route::delete('/import-conflicts/{importConflict}', [ImportConflictController::class, 'destroy'])
             ->name('import-conflicts.destroy');
+
+        Route::post(
+            'import-batch-sheets/{import_batch_sheet}/reset',
+            [ImportBatchController::class, 'resetSheet']
+        )->name('import-batch-sheets.reset');
     });
 
 
