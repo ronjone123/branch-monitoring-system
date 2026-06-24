@@ -803,7 +803,8 @@
         $invalidRows = (int) ($importBatch->invalid_rows ?? 0);
         $duplicateRows = (int) ($importBatch->duplicate_rows ?? 0);
         $hasQualityIssues = $conflictCount > 0 || $errorCount > 0 || $skippedRows > 0 || $invalidRows > 0 || $duplicateRows > 0;
-        $canAccessImportConflicts = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
+        $canAccessImportConflicts = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer']);
+        $canResetImportBatchSheets = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
         $canRunMissingReview = auth()->user()?->hasAnyRole(['super_admin', 'admin', 'importer'])
             && $batchStatus === 'imported'
             && $hasReviewableLatestRows
@@ -1220,16 +1221,18 @@
                                                 </button>
                                             @endif
 
-                                            <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
-                                                method="POST"
-                                                data-loading="true"
-                                                data-loading-message="Resetting parsed sheet data. Please wait..."
-                                                onsubmit="return confirm('Reset parsed data for this sheet?')">
-                                                @csrf
-                                                <button type="submit" class="import-show-btn import-show-btn-danger">
-                                                    Reset
-                                                </button>
-                                            </form>
+                                            @if($canResetImportBatchSheets)
+                                                <form action="{{ route('import-batch-sheets.reset', $sheet) }}"
+                                                    method="POST"
+                                                    data-loading="true"
+                                                    data-loading-message="Resetting parsed sheet data. Please wait..."
+                                                    onsubmit="return confirm('Reset parsed data for this sheet?')">
+                                                    @csrf
+                                                    <button type="submit" class="import-show-btn import-show-btn-danger">
+                                                        Reset
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     @else
                                         <span class="text-muted">-</span>

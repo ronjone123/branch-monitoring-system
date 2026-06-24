@@ -572,6 +572,7 @@
         $displayValue = function ($value) {
             return filled($value) ? $value : '-';
         };
+        $canDeleteImportConflict = auth()->user()?->hasAnyRole(['super_admin', 'admin']);
 
         $comparison = collect($comparisonRows);
         $changedRows = $comparison->where('changed', true);
@@ -896,14 +897,16 @@
                                 </form>
                             @endif
 
-                            <form action="{{ route('import-conflicts.destroy', $importConflict) }}" method="POST"
-                                  onsubmit="return confirm('Delete this conflict permanently?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="import-conflict-btn import-conflict-btn-danger w-100">
-                                    Delete Conflict
-                                </button>
-                            </form>
+                            @if($canDeleteImportConflict)
+                                <form action="{{ route('import-conflicts.destroy', $importConflict) }}" method="POST"
+                                      onsubmit="return confirm('Delete this conflict permanently?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="import-conflict-btn import-conflict-btn-danger w-100">
+                                        Delete Conflict
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </section>

@@ -5,8 +5,9 @@
         $canAccessImports = $user?->hasAnyRole(['super_admin', 'admin', 'importer']);
         $canAccessDashboards = $user?->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']);
         $canAccessSalesTransactions = $user?->hasAnyRole(['super_admin', 'admin', 'importer', 'viewer']);
-        $canAccessImportConflicts = $user?->hasAnyRole(['super_admin', 'admin']);
-        $canAccessMasterData = $user?->hasRole('super_admin');
+        $canAccessImportConflicts = $user?->hasAnyRole(['super_admin', 'admin', 'importer']);
+        $canAccessMasterData = $user?->hasAnyRole(['super_admin', 'admin']);
+        $canAccessUserManagement = $user?->hasRole('super_admin');
 
         $masterDataActive = request()->routeIs([
             'branches.*',
@@ -98,9 +99,11 @@
                                         {{ __('Brands') }}
                                     </x-dropdown-link>
 
-                                    <x-dropdown-link :href="route('users.index')">
-                                        {{ __('Users') }}
-                                    </x-dropdown-link>
+                                    @if($canAccessUserManagement)
+                                        <x-dropdown-link :href="route('users.index')">
+                                            {{ __('Users') }}
+                                        </x-dropdown-link>
+                                    @endif
                                 </x-slot>
                             </x-dropdown>
                         </div>
@@ -220,9 +223,11 @@
                     {{ __('Brands') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                    {{ __('Users') }}
-                </x-responsive-nav-link>
+                @if($canAccessUserManagement)
+                    <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                        {{ __('Users') }}
+                    </x-responsive-nav-link>
+                @endif
             @endif
         </div>
 
