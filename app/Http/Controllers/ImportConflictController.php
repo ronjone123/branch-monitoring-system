@@ -20,6 +20,7 @@ class ImportConflictController extends Controller
             'importBatchSheet',
             'existingSalesTransaction',
             'branch',
+            'reviewer',
         ])->latest();
 
         if ($request->filled('import_batch_id')) {
@@ -57,6 +58,7 @@ class ImportConflictController extends Controller
             'importBatchSheet',
             'existingSalesTransaction.branch',
             'branch',
+            'reviewer',
         ]);
 
         $existingData = $importConflict->existing_row_data ?? [];
@@ -137,6 +139,7 @@ class ImportConflictController extends Controller
     {
         $importConflict->update([
             'status' => 'reviewed',
+            ...$this->reviewAuditAttributes(),
             'notes' => 'Conflict marked as reviewed.',
         ]);
 
@@ -149,6 +152,7 @@ class ImportConflictController extends Controller
     {
         $importConflict->update([
             'status' => 'ignored',
+            ...$this->reviewAuditAttributes(),
             'notes' => 'Conflict marked as ignored.',
         ]);
 
@@ -161,6 +165,7 @@ class ImportConflictController extends Controller
     {
         $importConflict->update([
             'status' => 'resolved',
+            ...$this->reviewAuditAttributes(),
             'notes' => 'Conflict resolved after review.',
         ]);
 
@@ -183,7 +188,7 @@ class ImportConflictController extends Controller
         $incomingTransactionImporter = app(ImportConflictIncomingTransactionImporter::class);
 
         try {
-            $transaction = $incomingTransactionImporter->importAsSeparateTransaction($importConflict);
+            $transaction = $incomingTransactionImporter->importAsSeparateTransaction($importConflict, auth()->id());
         } catch (RuntimeException $exception) {
             return redirect()
                 ->route('import-conflicts.show', $importConflict->getKey())
@@ -405,6 +410,7 @@ class ImportConflictController extends Controller
 
         $importConflict->update([
             'status' => 'resolved',
+            ...$this->reviewAuditAttributes(),
             'notes' => 'Incoming update applied to existing sales transaction.',
         ]);
 
@@ -459,5 +465,13 @@ class ImportConflictController extends Controller
     private function normalizeIdentityValue(?string $value): string
     {
         return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $value)));
+    }
+
+    private function reviewAuditAttributes(): array
+    {
+        return [
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ];
     }
 }

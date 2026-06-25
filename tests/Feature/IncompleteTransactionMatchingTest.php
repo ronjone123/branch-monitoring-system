@@ -230,6 +230,8 @@ class IncompleteTransactionMatchingTest extends TestCase
             $table->json('existing_row_data')->nullable();
             $table->json('incoming_row_data')->nullable();
             $table->string('status')->default('pending');
+            $table->foreignId('reviewed_by')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -248,6 +250,8 @@ class IncompleteTransactionMatchingTest extends TestCase
         $this->assertSame(1, (int) $sheet->fresh()->conflict_rows);
         $this->assertSame('completeness_conflict', ImportConflict::first()->conflict_type);
         $this->assertSame(SalesTransaction::first()->id, ImportConflict::first()->existing_sales_transaction_id);
+        $this->assertNull(ImportConflict::first()->reviewed_by);
+        $this->assertNull(ImportConflict::first()->reviewed_at);
     }
 
     public function test_completed_unit_identifier_creates_conflict_instead_of_duplicate_sale(): void
@@ -550,7 +554,98 @@ class IncompleteTransactionMatchingTest extends TestCase
         $this->assertSame(4, (int) $imported->source_row_number);
         $this->assertNotNull($imported->match_key);
         $this->assertNotNull($imported->row_hash);
-        $this->assertSame('resolved', $conflict->fresh()->status);
+
+        $reviewedConflict = $conflict->fresh();
+
+        $this->assertSame('resolved', $reviewedConflict->status);
+        $this->assertSame($this->user->id, $reviewedConflict->reviewed_by);
+        $this->assertNotNull($reviewedConflict->reviewed_at);
+    }
+
+    public function test_mark_reviewed_sets_review_audit_fields(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $conflict = $this->createRelatedAccountConflict($this->createOldIncompleteTransaction(), $this->row());
+
+        $this->patch(route('import-conflicts.mark-reviewed', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $reviewedConflict = $conflict->fresh();
+
+        $this->assertSame('reviewed', $reviewedConflict->status);
+        $this->assertSame($this->user->id, $reviewedConflict->reviewed_by);
+        $this->assertNotNull($reviewedConflict->reviewed_at);
+    }
+
+    public function test_mark_ignored_sets_review_audit_fields(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $conflict = $this->createRelatedAccountConflict($this->createOldIncompleteTransaction(), $this->row());
+
+        $this->patch(route('import-conflicts.mark-ignored', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $reviewedConflict = $conflict->fresh();
+
+        $this->assertSame('ignored', $reviewedConflict->status);
+        $this->assertSame($this->user->id, $reviewedConflict->reviewed_by);
+        $this->assertNotNull($reviewedConflict->reviewed_at);
+    }
+
+    public function test_mark_resolved_sets_review_audit_fields(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $conflict = $this->createRelatedAccountConflict($this->createOldIncompleteTransaction(), $this->row());
+
+        $this->patch(route('import-conflicts.mark-resolved', $conflict))
+            ->assertRedirect(route('import-conflicts.show', $conflict));
+
+        $reviewedConflict = $conflict->fresh();
+
+        $this->assertSame('resolved', $reviewedConflict->status);
+        $this->assertSame($this->user->id, $reviewedConflict->reviewed_by);
+        $this->assertNotNull($reviewedConflict->reviewed_at);
+    }
+
+    public function test_conflict_show_page_displays_review_audit_fields(): void
+    {
+        $this->withoutMiddleware([
+            Authenticate::class,
+            EnsureEmailIsVerified::class,
+            EnsureUserHasRole::class,
+        ]);
+        $this->actingAs($this->user);
+
+        $conflict = $this->createRelatedAccountConflict($this->createOldIncompleteTransaction(), $this->row());
+        $conflict->update([
+            'status' => 'reviewed',
+            'reviewed_by' => $this->user->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $this->get(route('import-conflicts.show', $conflict))
+            ->assertOk()
+            ->assertSee('Reviewed By')
+            ->assertSee($this->user->name)
+            ->assertSee('Reviewed At');
     }
 
     public function test_related_account_conflict_shows_both_manual_resolution_choices(): void
@@ -589,6 +684,7 @@ class IncompleteTransactionMatchingTest extends TestCase
             EnsureEmailIsVerified::class,
             EnsureUserHasRole::class,
         ]);
+        $this->actingAs($this->user);
 
         $existing = $this->createOldIncompleteTransaction([
             'account_number' => 'GSC01262',
@@ -626,7 +722,12 @@ class IncompleteTransactionMatchingTest extends TestCase
         $this->assertSame('ENGINE-CORRECTED', $updated->engine_number);
         $this->assertSame('CHASSIS-CORRECTED', $updated->chassis_number);
         $this->assertSame('STOCK-CORRECTED', $updated->stock_code);
-        $this->assertSame('resolved', $conflict->fresh()->status);
+
+        $reviewedConflict = $conflict->fresh();
+
+        $this->assertSame('resolved', $reviewedConflict->status);
+        $this->assertSame($this->user->id, $reviewedConflict->reviewed_by);
+        $this->assertNotNull($reviewedConflict->reviewed_at);
     }
 
     public function test_import_as_separate_customer_is_not_available_for_missing_from_latest_import(): void
