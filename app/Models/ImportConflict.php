@@ -18,6 +18,8 @@ class ImportConflict extends Model
         'existing_row_data',
         'incoming_row_data',
         'status',
+        'reviewed_by',
+        'reviewed_at',
         'notes',
         'conflict_type',
     ];
@@ -25,6 +27,7 @@ class ImportConflict extends Model
     protected $casts = [
         'existing_row_data' => 'array',
         'incoming_row_data' => 'array',
+        'reviewed_at' => 'datetime',
     ];
 
     public function importBatch(): BelongsTo
@@ -45,5 +48,10 @@ class ImportConflict extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }

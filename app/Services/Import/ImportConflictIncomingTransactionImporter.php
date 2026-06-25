@@ -23,7 +23,7 @@ class ImportConflictIncomingTransactionImporter
         return $this->findImportedIncomingTransaction($data) !== null;
     }
 
-    public function importAsSeparateTransaction(ImportConflict $conflict): SalesTransaction
+    public function importAsSeparateTransaction(ImportConflict $conflict, ?int $reviewedBy = null): SalesTransaction
     {
         if ($conflict->conflict_type !== 'related_account_conflict') {
             throw new RuntimeException('Only related account conflicts can be imported as separate transactions.');
@@ -35,11 +35,11 @@ class ImportConflictIncomingTransactionImporter
 
         $data = $this->mapIncomingRow($conflict);
 
-        return DB::transaction(function () use ($conflict, $data): SalesTransaction {
+        return DB::transaction(function () use ($conflict, $data, $reviewedBy): SalesTransaction {
             $existingImported = $this->findImportedIncomingTransaction($data);
 
             if ($existingImported) {
-                $this->markConflictResolved($conflict, 'Incoming row was already imported as a separate sales transaction.');
+                $this->markConflictResolved($conflict, 'Incoming row was already imported as a separate sales transaction.', $reviewedBy);
 
                 return $existingImported;
             }
@@ -50,7 +50,7 @@ class ImportConflictIncomingTransactionImporter
 
             if ($strictMatch) {
                 if ($strictMatch->row_hash === $data['row_hash']) {
-                    $this->markConflictResolved($conflict, 'Incoming row was already imported as a separate sales transaction.');
+                    $this->markConflictResolved($conflict, 'Incoming row was already imported as a separate sales transaction.', $reviewedBy);
 
                     return $strictMatch;
                 }
@@ -60,7 +60,7 @@ class ImportConflictIncomingTransactionImporter
 
             $transaction = SalesTransaction::create($data);
 
-            $this->markConflictResolved($conflict, 'Incoming row confirmed as a separate customer and imported as a new sales transaction.');
+            $this->markConflictResolved($conflict, 'Incoming row confirmed as a separate customer and imported as a new sales transaction.', $reviewedBy);
 
             return $transaction;
         });
@@ -85,10 +85,12 @@ class ImportConflictIncomingTransactionImporter
             ->first();
     }
 
-    private function markConflictResolved(ImportConflict $conflict, string $notes): void
+    private function markConflictResolved(ImportConflict $conflict, string $notes, ?int $reviewedBy = null): void
     {
         $conflict->update([
             'status' => 'resolved',
+            'reviewed_by' => $reviewedBy,
+            'reviewed_at' => now(),
             'notes' => $notes,
         ]);
     }

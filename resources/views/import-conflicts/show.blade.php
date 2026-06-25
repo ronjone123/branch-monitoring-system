@@ -944,6 +944,18 @@
                                 <div class="import-conflict-field-label">Source Row</div>
                                 <div class="import-conflict-field-value">{{ $importConflict->source_row_number ?? '-' }}</div>
                             </div>
+                            @if($importConflict->reviewed_by || $importConflict->reviewed_at)
+                                <div class="import-conflict-field-row">
+                                    <div class="import-conflict-field-label">Reviewed By</div>
+                                    <div class="import-conflict-field-value">
+                                        {{ $importConflict->reviewer?->name ?? $importConflict->reviewer?->email ?? '-' }}
+                                    </div>
+                                </div>
+                                <div class="import-conflict-field-row">
+                                    <div class="import-conflict-field-label">Reviewed At</div>
+                                    <div class="import-conflict-field-value">{{ $importConflict->reviewed_at?->format('M d, Y h:i A') ?? '-' }}</div>
+                                </div>
+                            @endif
                             <div class="import-conflict-field-row">
                                 <div class="import-conflict-field-label">Batch Status</div>
                                 <div class="import-conflict-field-value">{{ ucfirst((string) ($importConflict->importBatch->status ?? '-')) }}</div>

@@ -362,6 +362,8 @@ class ResetImportedSalesDataCommandTest extends TestCase
             $table->json('existing_row_data')->nullable();
             $table->json('incoming_row_data')->nullable();
             $table->string('status')->default('pending');
+            $table->foreignId('reviewed_by')->nullable();
+            $table->timestamp('reviewed_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
